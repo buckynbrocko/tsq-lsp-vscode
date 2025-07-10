@@ -1,0 +1,1045 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coverage generated="1751850353571" clover="3.2.0">
+  <project timestamp="1751850353571" name="All files">
+    <metrics statements="958" coveredstatements="500" conditionals="508" coveredconditionals="143" methods="284" coveredmethods="113" elements="1750" coveredelements="756" complexity="0" loc="958" ncloc="958" packages="5" files="22" classes="22"/>
+    <package name="__tests__">
+      <metrics statements="2" coveredstatements="2" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+      <file name="NODE_TYPES.ts" path="/Users/buckyallen/Documents-Local/local-repos/vscode-tree-sitter-dev/server/__tests__/NODE_TYPES.ts">
+        <metrics statements="2" coveredstatements="2" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="3" count="2" type="stmt"/>
+        <line num="499" count="2" type="stmt"/>
+      </file>
+    </package>
+    <package name="src">
+      <metrics statements="491" coveredstatements="248" conditionals="280" coveredconditionals="82" methods="147" coveredmethods="53"/>
+      <file name="Dict.ts" path="/Users/buckyallen/Documents-Local/local-repos/vscode-tree-sitter-dev/server/src/Dict.ts">
+        <metrics statements="21" coveredstatements="6" conditionals="4" coveredconditionals="0" methods="12" coveredmethods="4"/>
+        <line num="7" count="4" type="stmt"/>
+        <line num="9" count="1" type="stmt"/>
+        <line num="13" count="0" type="stmt"/>
+        <line num="20" count="0" type="stmt"/>
+        <line num="24" count="81" type="stmt"/>
+        <line num="25" count="172" type="stmt"/>
+        <line num="30" count="0" type="stmt"/>
+        <line num="31" count="0" type="stmt"/>
+        <line num="36" count="0" type="stmt"/>
+        <line num="37" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="38" count="0" type="stmt"/>
+        <line num="41" count="0" type="stmt"/>
+        <line num="45" count="0" type="stmt"/>
+        <line num="46" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="47" count="0" type="stmt"/>
+        <line num="50" count="0" type="stmt"/>
+        <line num="54" count="181" type="stmt"/>
+        <line num="58" count="2" type="stmt"/>
+        <line num="62" count="0" type="stmt"/>
+        <line num="63" count="0" type="stmt"/>
+        <line num="67" count="0" type="stmt"/>
+      </file>
+      <file name="TypeEnvironment.ts" path="/Users/buckyallen/Documents-Local/local-repos/vscode-tree-sitter-dev/server/src/TypeEnvironment.ts">
+        <metrics statements="37" coveredstatements="24" conditionals="11" coveredconditionals="1" methods="19" coveredmethods="10"/>
+        <line num="2" count="2" type="stmt"/>
+        <line num="3" count="2" type="stmt"/>
+        <line num="4" count="2" type="stmt"/>
+        <line num="5" count="2" type="stmt"/>
+        <line num="6" count="2" type="stmt"/>
+        <line num="7" count="2" type="stmt"/>
+        <line num="15" count="2" type="stmt"/>
+        <line num="17" count="14" type="stmt"/>
+        <line num="18" count="14" type="stmt"/>
+        <line num="19" count="14" type="stmt"/>
+        <line num="20" count="14" type="stmt"/>
+        <line num="21" count="14" type="stmt"/>
+        <line num="25" count="12" type="stmt"/>
+        <line num="28" count="2" type="stmt"/>
+        <line num="29" count="2" type="stmt"/>
+        <line num="32" count="2" type="stmt"/>
+        <line num="33" count="2" type="stmt"/>
+        <line num="34" count="127" type="stmt"/>
+        <line num="35" count="181" type="stmt"/>
+        <line num="36" count="181" type="stmt"/>
+        <line num="38" count="2" type="stmt"/>
+        <line num="42" count="0" type="cond" truecount="0" falsecount="3"/>
+        <line num="46" count="0" type="stmt"/>
+        <line num="50" count="0" type="stmt"/>
+        <line num="54" count="0" type="stmt"/>
+        <line num="58" count="20" type="stmt"/>
+        <line num="62" count="4" type="stmt"/>
+        <line num="66" count="0" type="stmt"/>
+        <line num="68" count="0" type="stmt"/>
+        <line num="73" count="0" type="stmt"/>
+        <line num="74" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="75" count="0" type="stmt"/>
+        <line num="77" count="0" type="stmt"/>
+        <line num="78" count="0" type="stmt"/>
+        <line num="79" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="80" count="0" type="stmt"/>
+        <line num="88" count="5" type="cond" truecount="1" falsecount="1"/>
+      </file>
+      <file name="completions.ts" path="/Users/buckyallen/Documents-Local/local-repos/vscode-tree-sitter-dev/server/src/completions.ts">
+        <metrics statements="171" coveredstatements="49" conditionals="115" coveredconditionals="8" methods="29" coveredmethods="6"/>
+        <line num="1" count="2" type="stmt"/>
+        <line num="4" count="2" type="stmt"/>
+        <line num="9" count="2" type="stmt"/>
+        <line num="17" count="2" type="stmt"/>
+        <line num="23" count="2" type="stmt"/>
+        <line num="29" count="2" type="stmt"/>
+        <line num="52" count="2" type="stmt"/>
+        <line num="53" count="32" type="stmt"/>
+        <line num="56" count="2" type="stmt"/>
+        <line num="58" count="2" type="stmt"/>
+        <line num="59" count="6" type="stmt"/>
+        <line num="62" count="2" type="stmt"/>
+        <line num="70" count="2" type="stmt"/>
+        <line num="71" count="2" type="stmt"/>
+        <line num="73" count="2" type="stmt"/>
+        <line num="74" count="0" type="stmt"/>
+        <line num="77" count="2" type="stmt"/>
+        <line num="78" count="0" type="stmt"/>
+        <line num="81" count="2" type="stmt"/>
+        <line num="82" count="0" type="stmt"/>
+        <line num="83" count="0" type="stmt"/>
+        <line num="84" count="0" type="stmt"/>
+        <line num="85" count="0" type="stmt"/>
+        <line num="88" count="2" type="stmt"/>
+        <line num="89" count="0" type="cond" truecount="0" falsecount="5"/>
+        <line num="91" count="0" type="stmt"/>
+        <line num="93" count="0" type="stmt"/>
+        <line num="95" count="0" type="stmt"/>
+        <line num="97" count="0" type="stmt"/>
+        <line num="99" count="0" type="stmt"/>
+        <line num="100" count="0" type="stmt"/>
+        <line num="104" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="105" count="2" type="stmt"/>
+        <line num="106" count="2" type="stmt"/>
+        <line num="107" count="2" type="stmt"/>
+        <line num="108" count="2" type="stmt"/>
+        <line num="109" count="2" type="stmt"/>
+        <line num="110" count="2" type="stmt"/>
+        <line num="111" count="2" type="stmt"/>
+        <line num="112" count="2" type="stmt"/>
+        <line num="115" count="2" type="stmt"/>
+        <line num="117" count="2" type="stmt"/>
+        <line num="118" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="121" count="2" type="stmt"/>
+        <line num="122" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="125" count="2" type="stmt"/>
+        <line num="139" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="140" count="2" type="stmt"/>
+        <line num="141" count="0" type="stmt"/>
+        <line num="146" count="0" type="stmt"/>
+        <line num="147" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="148" count="0" type="stmt"/>
+        <line num="153" count="2" type="stmt"/>
+        <line num="156" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="157" count="2" type="stmt"/>
+        <line num="158" count="0" type="stmt"/>
+        <line num="163" count="0" type="stmt"/>
+        <line num="164" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="165" count="0" type="stmt"/>
+        <line num="189" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="190" count="2" type="stmt"/>
+        <line num="191" count="2" type="stmt"/>
+        <line num="192" count="2" type="stmt"/>
+        <line num="193" count="2" type="stmt"/>
+        <line num="198" count="2" type="stmt"/>
+        <line num="199" count="0" type="stmt"/>
+        <line num="200" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="201" count="0" type="stmt"/>
+        <line num="203" count="0" type="stmt"/>
+        <line num="204" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="205" count="0" type="stmt"/>
+        <line num="212" count="0" type="stmt"/>
+        <line num="214" count="0" type="stmt"/>
+        <line num="217" count="2" type="stmt"/>
+        <line num="220" count="0" type="stmt"/>
+        <line num="221" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="222" count="0" type="stmt"/>
+        <line num="229" count="0" type="stmt"/>
+        <line num="232" count="0" type="stmt"/>
+        <line num="233" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="234" count="0" type="stmt"/>
+        <line num="235" count="0" type="stmt"/>
+        <line num="238" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="239" count="0" type="stmt"/>
+        <line num="242" count="0" type="stmt"/>
+        <line num="243" count="0" type="stmt"/>
+        <line num="244" count="0" type="cond" truecount="0" falsecount="46"/>
+        <line num="248" count="0" type="stmt"/>
+        <line num="250" count="0" type="stmt"/>
+        <line num="252" count="0" type="stmt"/>
+        <line num="254" count="0" type="stmt"/>
+        <line num="260" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="261" count="0" type="stmt"/>
+        <line num="266" count="0" type="stmt"/>
+        <line num="274" count="0" type="stmt"/>
+        <line num="280" count="0" type="stmt"/>
+        <line num="286" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="287" count="0" type="stmt"/>
+        <line num="289" count="0" type="stmt"/>
+        <line num="291" count="0" type="stmt"/>
+        <line num="295" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="297" count="0" type="stmt"/>
+        <line num="306" count="0" type="stmt"/>
+        <line num="308" count="0" type="stmt"/>
+        <line num="310" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="311" count="0" type="stmt"/>
+        <line num="314" count="0" type="stmt"/>
+        <line num="316" count="0" type="stmt"/>
+        <line num="325" count="0" type="stmt"/>
+        <line num="327" count="0" type="stmt"/>
+        <line num="329" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="330" count="0" type="stmt"/>
+        <line num="332" count="0" type="stmt"/>
+        <line num="336" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="337" count="0" type="stmt"/>
+        <line num="342" count="0" type="stmt"/>
+        <line num="352" count="0" type="stmt"/>
+        <line num="354" count="0" type="stmt"/>
+        <line num="356" count="0" type="stmt"/>
+        <line num="360" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="362" count="0" type="stmt"/>
+        <line num="370" count="0" type="stmt"/>
+        <line num="373" count="0" type="stmt"/>
+        <line num="375" count="0" type="stmt"/>
+        <line num="377" count="0" type="stmt"/>
+        <line num="384" count="0" type="stmt"/>
+        <line num="387" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="388" count="0" type="stmt"/>
+        <line num="394" count="0" type="stmt"/>
+        <line num="398" count="0" type="stmt"/>
+        <line num="401" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="402" count="0" type="stmt"/>
+        <line num="407" count="0" type="stmt"/>
+        <line num="415" count="0" type="stmt"/>
+        <line num="416" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="417" count="0" type="stmt"/>
+        <line num="419" count="0" type="stmt"/>
+        <line num="420" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="421" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="422" count="0" type="stmt"/>
+        <line num="428" count="0" type="stmt"/>
+        <line num="457" count="0" type="stmt"/>
+        <line num="460" count="0" type="stmt"/>
+        <line num="462" count="0" type="stmt"/>
+        <line num="463" count="0" type="stmt"/>
+        <line num="468" count="2" type="stmt"/>
+        <line num="469" count="0" type="stmt"/>
+        <line num="472" count="2" type="stmt"/>
+        <line num="473" count="0" type="stmt"/>
+        <line num="474" count="0" type="stmt"/>
+        <line num="475" count="0" type="stmt"/>
+        <line num="476" count="0" type="stmt"/>
+        <line num="478" count="0" type="stmt"/>
+        <line num="480" count="2" type="stmt"/>
+        <line num="481" count="0" type="stmt"/>
+        <line num="482" count="0" type="stmt"/>
+        <line num="483" count="0" type="stmt"/>
+        <line num="484" count="0" type="stmt"/>
+        <line num="486" count="0" type="stmt"/>
+        <line num="489" count="2" type="stmt"/>
+        <line num="490" count="0" type="stmt"/>
+        <line num="491" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="492" count="0" type="stmt"/>
+        <line num="495" count="0" type="stmt"/>
+        <line num="498" count="2" type="stmt"/>
+        <line num="499" count="0" type="stmt"/>
+        <line num="500" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="501" count="0" type="stmt"/>
+        <line num="504" count="0" type="stmt"/>
+        <line num="507" count="2" type="stmt"/>
+        <line num="508" count="0" type="cond" truecount="0" falsecount="2"/>
+      </file>
+      <file name="junk_drawer.ts" path="/Users/buckyallen/Documents-Local/local-repos/vscode-tree-sitter-dev/server/src/junk_drawer.ts">
+        <metrics statements="163" coveredstatements="103" conditionals="95" coveredconditionals="45" methods="50" coveredmethods="20"/>
+        <line num="2" count="6" type="stmt"/>
+        <line num="5" count="6" type="stmt"/>
+        <line num="7" count="6" type="stmt"/>
+        <line num="8" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="9" count="0" type="stmt"/>
+        <line num="11" count="1" type="stmt"/>
+        <line num="12" count="1" type="stmt"/>
+        <line num="13" count="1" type="cond" truecount="3" falsecount="1"/>
+        <line num="14" count="0" type="stmt"/>
+        <line num="16" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="17" count="1" type="stmt"/>
+        <line num="19" count="0" type="stmt"/>
+        <line num="22" count="6" type="stmt"/>
+        <line num="23" count="0" type="stmt"/>
+        <line num="24" count="0" type="stmt"/>
+        <line num="28" count="6" type="stmt"/>
+        <line num="29" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="32" count="6" type="stmt"/>
+        <line num="33" count="0" type="cond" truecount="0" falsecount="3"/>
+        <line num="35" count="0" type="stmt"/>
+        <line num="37" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="39" count="0" type="stmt"/>
+        <line num="43" count="6" type="stmt"/>
+        <line num="44" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="45" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="46" count="0" type="stmt"/>
+        <line num="48" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="49" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="50" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="51" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="55" count="6" type="stmt"/>
+        <line num="56" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="57" count="0" type="stmt"/>
+        <line num="60" count="6" type="stmt"/>
+        <line num="61" count="0" type="stmt"/>
+        <line num="64" count="6" type="stmt"/>
+        <line num="66" count="6" type="stmt"/>
+        <line num="67" count="24" type="stmt"/>
+        <line num="69" count="6" type="stmt"/>
+        <line num="70" count="8" type="stmt"/>
+        <line num="86" count="6" type="stmt"/>
+        <line num="88" count="6" type="stmt"/>
+        <line num="94" count="6" type="stmt"/>
+        <line num="96" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="99" count="6" type="stmt"/>
+        <line num="101" count="6" type="stmt"/>
+        <line num="102" count="0" type="stmt"/>
+        <line num="105" count="6" type="stmt"/>
+        <line num="106" count="0" type="stmt"/>
+        <line num="109" count="6" type="stmt"/>
+        <line num="110" count="0" type="stmt"/>
+        <line num="116" count="6" type="stmt"/>
+        <line num="117" count="0" type="stmt"/>
+        <line num="123" count="6" type="stmt"/>
+        <line num="124" count="0" type="stmt"/>
+        <line num="125" count="0" type="stmt"/>
+        <line num="126" count="0" type="stmt"/>
+        <line num="127" count="0" type="stmt"/>
+        <line num="128" count="0" type="stmt"/>
+        <line num="131" count="6" type="stmt"/>
+        <line num="132" count="0" type="stmt"/>
+        <line num="136" count="0" type="stmt"/>
+        <line num="140" count="0" type="stmt"/>
+        <line num="143" count="6" type="stmt"/>
+        <line num="144" count="0" type="stmt"/>
+        <line num="145" count="0" type="stmt"/>
+        <line num="148" count="6" type="stmt"/>
+        <line num="149" count="2" type="stmt"/>
+        <line num="150" count="2" type="stmt"/>
+        <line num="153" count="6" type="stmt"/>
+        <line num="154" count="0" type="stmt"/>
+        <line num="157" count="6" type="stmt"/>
+        <line num="158" count="0" type="stmt"/>
+        <line num="161" count="6" type="stmt"/>
+        <line num="162" count="0" type="cond" truecount="0" falsecount="3"/>
+        <line num="165" count="6" type="stmt"/>
+        <line num="170" count="47378" type="cond" truecount="2" falsecount="2"/>
+        <line num="173" count="6" type="stmt"/>
+        <line num="178" count="92431" type="cond" truecount="3" falsecount="0"/>
+        <line num="181" count="6" type="stmt"/>
+        <line num="185" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="188" count="6" type="stmt"/>
+        <line num="189" count="0" type="stmt"/>
+        <line num="192" count="6" type="stmt"/>
+        <line num="197" count="91715" type="cond" truecount="2" falsecount="0"/>
+        <line num="212" count="6" type="stmt"/>
+        <line num="216" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="217" count="0" type="stmt"/>
+        <line num="219" count="0" type="stmt"/>
+        <line num="220" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="221" count="0" type="stmt"/>
+        <line num="225" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="226" count="0" type="stmt"/>
+        <line num="227" count="0" type="stmt"/>
+        <line num="231" count="6" type="stmt"/>
+        <line num="232" count="569" type="stmt"/>
+        <line num="237" count="6" type="stmt"/>
+        <line num="241" count="24258" type="cond" truecount="2" falsecount="0"/>
+        <line num="242" count="23689" type="stmt"/>
+        <line num="244" count="569" type="cond" truecount="2" falsecount="0"/>
+        <line num="248" count="23689" type="stmt"/>
+        <line num="251" count="6" type="stmt"/>
+        <line num="252" count="44" type="stmt"/>
+        <line num="258" count="6" type="stmt"/>
+        <line num="261" count="0" type="stmt"/>
+        <line num="264" count="6" type="stmt"/>
+        <line num="265" count="6" type="stmt"/>
+        <line num="271" count="6" type="stmt"/>
+        <line num="272" count="2" type="stmt"/>
+        <line num="278" count="6" type="stmt"/>
+        <line num="279" count="34013" type="stmt"/>
+        <line num="282" count="6" type="stmt"/>
+        <line num="283" count="34013" type="stmt"/>
+        <line num="286" count="6" type="stmt"/>
+        <line num="287" count="0" type="stmt"/>
+        <line num="288" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="289" count="0" type="stmt"/>
+        <line num="292" count="0" type="stmt"/>
+        <line num="294" count="6" type="stmt"/>
+        <line num="295" count="16" type="cond" truecount="2" falsecount="0"/>
+        <line num="297" count="6" type="stmt"/>
+        <line num="298" count="0" type="stmt"/>
+        <line num="299" count="0" type="stmt"/>
+        <line num="300" count="0" type="stmt"/>
+        <line num="301" count="0" type="cond" truecount="0" falsecount="3"/>
+        <line num="303" count="0" type="stmt"/>
+        <line num="306" count="6" type="stmt"/>
+        <line num="307" count="1" type="stmt"/>
+        <line num="308" count="1" type="stmt"/>
+        <line num="309" count="1" type="stmt"/>
+        <line num="310" count="1" type="stmt"/>
+        <line num="312" count="1" type="stmt"/>
+        <line num="313" count="88" type="stmt"/>
+        <line num="314" count="88" type="cond" truecount="2" falsecount="0"/>
+        <line num="315" count="19" type="cond" truecount="4" falsecount="0"/>
+        <line num="316" count="1" type="stmt"/>
+        <line num="319" count="69" type="stmt"/>
+        <line num="320" count="69" type="stmt"/>
+        <line num="321" count="69" type="cond" truecount="3" falsecount="0"/>
+        <line num="324" count="0" type="stmt"/>
+        <line num="327" count="6" type="stmt"/>
+        <line num="328" count="1" type="stmt"/>
+        <line num="329" count="1" type="stmt"/>
+        <line num="330" count="1" type="stmt"/>
+        <line num="331" count="69" type="cond" truecount="4" falsecount="0"/>
+        <line num="332" count="49" type="stmt"/>
+        <line num="333" count="49" type="stmt"/>
+        <line num="334" count="49" type="stmt"/>
+        <line num="336" count="69" type="cond" truecount="2" falsecount="0"/>
+        <line num="337" count="69" type="cond" truecount="2" falsecount="0"/>
+        <line num="338" count="69" type="cond" truecount="4" falsecount="0"/>
+        <line num="339" count="69" type="cond" truecount="2" falsecount="0"/>
+        <line num="340" count="69" type="cond" truecount="2" falsecount="0"/>
+        <line num="341" count="69" type="cond" truecount="1" falsecount="1"/>
+        <line num="342" count="69" type="stmt"/>
+        <line num="343" count="69" type="stmt"/>
+        <line num="345" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="346" count="1" type="stmt"/>
+        <line num="347" count="1" type="stmt"/>
+        <line num="348" count="1" type="stmt"/>
+        <line num="350" count="1" type="stmt"/>
+        <line num="406" count="6" type="stmt"/>
+        <line num="407" count="0" type="stmt"/>
+      </file>
+      <file name="node_types.ts" path="/Users/buckyallen/Documents-Local/local-repos/vscode-tree-sitter-dev/server/src/node_types.ts">
+        <metrics statements="98" coveredstatements="65" conditionals="55" coveredconditionals="28" methods="37" coveredmethods="13"/>
+        <line num="3" count="3" type="stmt"/>
+        <line num="20" count="3" type="cond" truecount="2" falsecount="0"/>
+        <line num="21" count="3" type="stmt"/>
+        <line num="22" count="34013" type="cond" truecount="2" falsecount="0"/>
+        <line num="25" count="3" type="stmt"/>
+        <line num="26" count="23689" type="cond" truecount="2" falsecount="0"/>
+        <line num="29" count="3" type="stmt"/>
+        <line num="30" count="23689" type="cond" truecount="2" falsecount="0"/>
+        <line num="33" count="3" type="stmt"/>
+        <line num="34" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="37" count="3" type="stmt"/>
+        <line num="38" count="0" type="stmt"/>
+        <line num="45" count="3" type="stmt"/>
+        <line num="46" count="1898" type="stmt"/>
+        <line num="49" count="3" type="stmt"/>
+        <line num="50" count="3144" type="stmt"/>
+        <line num="53" count="3" type="stmt"/>
+        <line num="54" count="0" type="stmt"/>
+        <line num="57" count="3" type="stmt"/>
+        <line num="58" count="0" type="stmt"/>
+        <line num="61" count="3" type="stmt"/>
+        <line num="62" count="0" type="stmt"/>
+        <line num="65" count="3" type="stmt"/>
+        <line num="66" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="70" count="3" type="cond" truecount="2" falsecount="0"/>
+        <line num="71" count="3" type="stmt"/>
+        <line num="72" count="0" type="stmt"/>
+        <line num="73" count="0" type="stmt"/>
+        <line num="74" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="75" count="0" type="stmt"/>
+        <line num="78" count="0" type="stmt"/>
+        <line num="79" count="0" type="stmt"/>
+        <line num="81" count="0" type="stmt"/>
+        <line num="84" count="3" type="stmt"/>
+        <line num="85" count="3" type="stmt"/>
+        <line num="86" count="3" type="stmt"/>
+        <line num="87" count="3" type="stmt"/>
+        <line num="88" count="3" type="stmt"/>
+        <line num="89" count="3" type="stmt"/>
+        <line num="90" count="3" type="stmt"/>
+        <line num="94" count="3" type="stmt"/>
+        <line num="95" count="3" type="stmt"/>
+        <line num="96" count="595" type="cond" truecount="2" falsecount="0"/>
+        <line num="97" count="238" type="stmt"/>
+        <line num="98" count="238" type="stmt"/>
+        <line num="99" count="357" type="cond" truecount="2" falsecount="0"/>
+        <line num="100" count="13" type="stmt"/>
+        <line num="101" count="344" type="cond" truecount="1" falsecount="1"/>
+        <line num="102" count="344" type="stmt"/>
+        <line num="103" count="344" type="cond" truecount="2" falsecount="0"/>
+        <line num="104" count="306" type="stmt"/>
+        <line num="106" count="38" type="stmt"/>
+        <line num="107" count="38" type="stmt"/>
+        <line num="110" count="0" type="stmt"/>
+        <line num="116" count="3" type="stmt"/>
+        <line num="117" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="118" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="120" count="0" type="stmt"/>
+        <line num="123" count="3" type="stmt"/>
+        <line num="124" count="0" type="stmt"/>
+        <line num="128" count="3" type="cond" truecount="2" falsecount="0"/>
+        <line num="129" count="3" type="stmt"/>
+        <line num="130" count="0" type="stmt"/>
+        <line num="144" count="23689" type="cond" truecount="2" falsecount="0"/>
+        <line num="148" count="0" type="stmt"/>
+        <line num="154" count="3" type="cond" truecount="2" falsecount="0"/>
+        <line num="155" count="3" type="stmt"/>
+        <line num="156" count="3" type="stmt"/>
+        <line num="157" count="3" type="stmt"/>
+        <line num="158" count="3" type="stmt"/>
+        <line num="213" count="3" type="stmt"/>
+        <line num="214" count="0" type="stmt"/>
+        <line num="215" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="216" count="0" type="stmt"/>
+        <line num="221" count="3" type="stmt"/>
+        <line num="222" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="225" count="3" type="stmt"/>
+        <line num="226" count="0" type="stmt"/>
+        <line num="229" count="3" type="stmt"/>
+        <line num="230" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="233" count="3" type="stmt"/>
+        <line num="234" count="525" type="stmt"/>
+        <line num="240" count="3" type="stmt"/>
+        <line num="241" count="0" type="stmt"/>
+        <line num="244" count="3" type="stmt"/>
+        <line num="245" count="0" type="stmt"/>
+        <line num="252" count="3" type="stmt"/>
+        <line num="253" count="0" type="stmt"/>
+        <line num="255" count="3" type="stmt"/>
+        <line num="256" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="263" count="3" type="stmt"/>
+        <line num="264" count="525" type="cond" truecount="3" falsecount="0"/>
+        <line num="267" count="3" type="stmt"/>
+        <line num="268" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="271" count="3" type="stmt"/>
+        <line num="272" count="0" type="stmt"/>
+        <line num="275" count="3" type="stmt"/>
+        <line num="276" count="0" type="stmt"/>
+      </file>
+      <file name="smoke.ts" path="/Users/buckyallen/Documents-Local/local-repos/vscode-tree-sitter-dev/server/src/smoke.ts">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="1" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.CheckableTypes">
+      <metrics statements="177" coveredstatements="135" conditionals="61" coveredconditionals="41" methods="62" coveredmethods="39"/>
+      <file name="FlatTypes.ts" path="/Users/buckyallen/Documents-Local/local-repos/vscode-tree-sitter-dev/server/src/CheckableTypes/FlatTypes.ts">
+        <metrics statements="66" coveredstatements="63" conditionals="26" coveredconditionals="21" methods="18" coveredmethods="18"/>
+        <line num="2" count="3" type="stmt"/>
+        <line num="3" count="3" type="stmt"/>
+        <line num="9" count="3" type="cond" truecount="2" falsecount="0"/>
+        <line num="10" count="3" type="stmt"/>
+        <line num="11" count="288" type="stmt"/>
+        <line num="12" count="288" type="stmt"/>
+        <line num="13" count="288" type="stmt"/>
+        <line num="14" count="865" type="stmt"/>
+        <line num="15" count="865" type="cond" truecount="2" falsecount="0"/>
+        <line num="16" count="145" type="stmt"/>
+        <line num="17" count="720" type="cond" truecount="2" falsecount="0"/>
+        <line num="18" count="109" type="stmt"/>
+        <line num="19" count="109" type="stmt"/>
+        <line num="20" count="2979" type="stmt"/>
+        <line num="22" count="611" type="stmt"/>
+        <line num="25" count="288" type="stmt"/>
+        <line num="28" count="3" type="stmt"/>
+        <line num="29" count="113" type="stmt"/>
+        <line num="30" count="396" type="stmt"/>
+        <line num="31" count="103" type="stmt"/>
+        <line num="33" count="76" type="cond" truecount="2" falsecount="0"/>
+        <line num="34" count="9" type="stmt"/>
+        <line num="37" count="9" type="stmt"/>
+        <line num="38" count="9" type="stmt"/>
+        <line num="39" count="54" type="stmt"/>
+        <line num="42" count="9" type="stmt"/>
+        <line num="43" count="287" type="stmt"/>
+        <line num="44" count="287" type="cond" truecount="2" falsecount="0"/>
+        <line num="45" count="14" type="stmt"/>
+        <line num="46" count="264" type="stmt"/>
+        <line num="47" count="14" type="stmt"/>
+        <line num="49" count="273" type="stmt"/>
+        <line num="52" count="9" type="stmt"/>
+        <line num="55" count="3" type="stmt"/>
+        <line num="56" count="57" type="stmt"/>
+        <line num="57" count="15960" type="stmt"/>
+        <line num="60" count="57" type="cond" truecount="1" falsecount="1"/>
+        <line num="61" count="0" type="stmt"/>
+        <line num="63" count="57" type="stmt"/>
+        <line num="64" count="1035" type="stmt"/>
+        <line num="65" count="342" type="stmt"/>
+        <line num="66" count="57" type="stmt"/>
+        <line num="68" count="485" type="cond" truecount="2" falsecount="0"/>
+        <line num="69" count="37" type="stmt"/>
+        <line num="70" count="37" type="stmt"/>
+        <line num="73" count="20" type="stmt"/>
+        <line num="74" count="20" type="stmt"/>
+        <line num="75" count="20" type="stmt"/>
+        <line num="76" count="20" type="stmt"/>
+        <line num="77" count="20" type="cond" truecount="2" falsecount="0"/>
+        <line num="78" count="570" type="stmt"/>
+        <line num="79" count="570" type="cond" truecount="1" falsecount="1"/>
+        <line num="81" count="570" type="stmt"/>
+        <line num="82" count="570" type="cond" truecount="2" falsecount="0"/>
+        <line num="83" count="550" type="stmt"/>
+        <line num="84" count="20" type="cond" truecount="1" falsecount="1"/>
+        <line num="85" count="20" type="stmt"/>
+        <line num="86" count="20" type="stmt"/>
+        <line num="87" count="130" type="stmt"/>
+        <line num="88" count="130" type="cond" truecount="1" falsecount="1"/>
+        <line num="89" count="0" type="stmt"/>
+        <line num="90" count="130" type="cond" truecount="1" falsecount="1"/>
+        <line num="91" count="0" type="stmt"/>
+        <line num="93" count="130" type="stmt"/>
+        <line num="97" count="570" type="stmt"/>
+        <line num="100" count="20" type="stmt"/>
+      </file>
+      <file name="Named.ts" path="/Users/buckyallen/Documents-Local/local-repos/vscode-tree-sitter-dev/server/src/CheckableTypes/Named.ts">
+        <metrics statements="56" coveredstatements="36" conditionals="26" coveredconditionals="16" methods="22" coveredmethods="11"/>
+        <line num="3" count="2" type="stmt"/>
+        <line num="4" count="2" type="stmt"/>
+        <line num="5" count="2" type="stmt"/>
+        <line num="7" count="2" type="stmt"/>
+        <line num="10" count="2" type="stmt"/>
+        <line num="12" count="181" type="stmt"/>
+        <line num="13" count="181" type="cond" truecount="1" falsecount="0"/>
+        <line num="14" count="181" type="cond" truecount="1" falsecount="0"/>
+        <line num="15" count="181" type="cond" truecount="1" falsecount="0"/>
+        <line num="16" count="181" type="cond" truecount="1" falsecount="0"/>
+        <line num="17" count="181" type="stmt"/>
+        <line num="18" count="181" type="stmt"/>
+        <line num="19" count="181" type="stmt"/>
+        <line num="23" count="181" type="stmt"/>
+        <line num="24" count="181" type="cond" truecount="2" falsecount="0"/>
+        <line num="25" count="160" type="cond" truecount="2" falsecount="0"/>
+        <line num="26" count="115" type="stmt"/>
+        <line num="27" count="115" type="stmt"/>
+        <line num="28" count="115" type="stmt"/>
+        <line num="29" count="115" type="stmt"/>
+        <line num="31" count="160" type="stmt"/>
+        <line num="32" count="160" type="cond" truecount="2" falsecount="0"/>
+        <line num="33" count="81" type="stmt"/>
+        <line num="34" count="172" type="stmt"/>
+        <line num="35" count="172" type="stmt"/>
+        <line num="37" count="81" type="stmt"/>
+        <line num="40" count="181" type="cond" truecount="2" falsecount="0"/>
+        <line num="41" count="2" type="stmt"/>
+        <line num="43" count="181" type="cond" truecount="2" falsecount="0"/>
+        <line num="44" count="1" type="stmt"/>
+        <line num="46" count="181" type="stmt"/>
+        <line num="50" count="287" type="stmt"/>
+        <line num="54" count="3307" type="stmt"/>
+        <line num="58" count="0" type="stmt"/>
+        <line num="62" count="0" type="stmt"/>
+        <line num="66" count="0" type="stmt"/>
+        <line num="70" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="74" count="0" type="stmt"/>
+        <line num="76" count="0" type="stmt"/>
+        <line num="77" count="0" type="stmt"/>
+        <line num="81" count="0" type="stmt"/>
+        <line num="85" count="0" type="stmt"/>
+        <line num="89" count="0" type="stmt"/>
+        <line num="90" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="94" count="0" type="stmt"/>
+        <line num="95" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="96" count="0" type="stmt"/>
+        <line num="97" count="0" type="stmt"/>
+        <line num="100" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="101" count="0" type="stmt"/>
+        <line num="104" count="0" type="stmt"/>
+        <line num="105" count="0" type="stmt"/>
+        <line num="107" count="0" type="stmt"/>
+        <line num="112" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="113" count="2" type="stmt"/>
+        <line num="114" count="181" type="stmt"/>
+      </file>
+      <file name="Subnode.ts" path="/Users/buckyallen/Documents-Local/local-repos/vscode-tree-sitter-dev/server/src/CheckableTypes/Subnode.ts">
+        <metrics statements="36" coveredstatements="17" conditionals="7" coveredconditionals="2" methods="16" coveredmethods="4"/>
+        <line num="2" count="2" type="stmt"/>
+        <line num="3" count="2" type="stmt"/>
+        <line num="6" count="2" type="stmt"/>
+        <line num="9" count="2" type="stmt"/>
+        <line num="11" count="287" type="stmt"/>
+        <line num="12" count="287" type="stmt"/>
+        <line num="13" count="287" type="stmt"/>
+        <line num="14" count="287" type="stmt"/>
+        <line num="26" count="287" type="stmt"/>
+        <line num="27" count="287" type="stmt"/>
+        <line num="31" count="0" type="stmt"/>
+        <line num="35" count="0" type="stmt"/>
+        <line num="39" count="0" type="stmt"/>
+        <line num="43" count="0" type="stmt"/>
+        <line num="47" count="0" type="stmt"/>
+        <line num="51" count="0" type="stmt"/>
+        <line num="52" count="0" type="stmt"/>
+        <line num="53" count="0" type="stmt"/>
+        <line num="54" count="0" type="stmt"/>
+        <line num="58" count="0" type="stmt"/>
+        <line num="59" count="0" type="stmt"/>
+        <line num="60" count="0" type="stmt"/>
+        <line num="63" count="0" type="stmt"/>
+        <line num="66" count="2" type="stmt"/>
+        <line num="67" count="0" type="stmt"/>
+        <line num="69" count="2" type="stmt"/>
+        <line num="70" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="73" count="2" type="stmt"/>
+        <line num="74" count="0" type="cond" truecount="0" falsecount="3"/>
+        <line num="76" count="0" type="stmt"/>
+        <line num="78" count="0" type="stmt"/>
+        <line num="80" count="0" type="stmt"/>
+        <line num="84" count="2" type="stmt"/>
+        <line num="85" count="172" type="stmt"/>
+        <line num="89" count="160" type="cond" truecount="2" falsecount="0"/>
+        <line num="90" count="81" type="stmt"/>
+      </file>
+      <file name="Supertype.ts" path="/Users/buckyallen/Documents-Local/local-repos/vscode-tree-sitter-dev/server/src/CheckableTypes/Supertype.ts">
+        <metrics statements="19" coveredstatements="19" conditionals="2" coveredconditionals="2" methods="6" coveredmethods="6"/>
+        <line num="2" count="3" type="stmt"/>
+        <line num="3" count="3" type="stmt"/>
+        <line num="6" count="3" type="stmt"/>
+        <line num="8" count="3" type="stmt"/>
+        <line num="10" count="13" type="stmt"/>
+        <line num="14" count="13" type="stmt"/>
+        <line num="17" count="13" type="stmt"/>
+        <line num="18" count="13" type="stmt"/>
+        <line num="19" count="13" type="stmt"/>
+        <line num="20" count="13" type="stmt"/>
+        <line num="21" count="13" type="stmt"/>
+        <line num="26" count="3" type="cond" truecount="2" falsecount="0"/>
+        <line num="27" count="3" type="stmt"/>
+        <line num="28" count="3" type="stmt"/>
+        <line num="29" count="13" type="stmt"/>
+        <line num="30" count="13" type="stmt"/>
+        <line num="31" count="3" type="stmt"/>
+        <line num="34" count="3" type="stmt"/>
+        <line num="35" count="1" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.diagnostics">
+      <metrics statements="101" coveredstatements="48" conditionals="29" coveredconditionals="6" methods="36" coveredmethods="5"/>
+      <file name="DiagnosticError.ts" path="/Users/buckyallen/Documents-Local/local-repos/vscode-tree-sitter-dev/server/src/diagnostics/DiagnosticError.ts">
+        <metrics statements="7" coveredstatements="7" conditionals="3" coveredconditionals="2" methods="1" coveredmethods="1"/>
+        <line num="1" count="1" type="stmt"/>
+        <line num="3" count="1" type="stmt"/>
+        <line num="4" count="1" type="stmt"/>
+        <line num="5" count="1" type="stmt"/>
+        <line num="10" count="1" type="cond" truecount="0" falsecount="1"/>
+        <line num="11" count="8" type="cond" truecount="2" falsecount="0"/>
+        <line num="12" count="8" type="stmt"/>
+      </file>
+      <file name="DiagnosticWarning.ts" path="/Users/buckyallen/Documents-Local/local-repos/vscode-tree-sitter-dev/server/src/diagnostics/DiagnosticWarning.ts">
+        <metrics statements="4" coveredstatements="3" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="0"/>
+        <line num="1" count="1" type="stmt"/>
+        <line num="2" count="1" type="stmt"/>
+        <line num="4" count="1" type="stmt"/>
+        <line num="5" count="0" type="stmt"/>
+      </file>
+      <file name="SyntaxError.ts" path="/Users/buckyallen/Documents-Local/local-repos/vscode-tree-sitter-dev/server/src/diagnostics/SyntaxError.ts">
+        <metrics statements="37" coveredstatements="17" conditionals="11" coveredconditionals="1" methods="16" coveredmethods="2"/>
+        <line num="3" count="1" type="stmt"/>
+        <line num="4" count="1" type="stmt"/>
+        <line num="6" count="1" type="cond" truecount="0" falsecount="1"/>
+        <line num="7" count="6" type="stmt"/>
+        <line num="10" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="11" count="1" type="stmt"/>
+        <line num="12" count="0" type="stmt"/>
+        <line num="15" count="1" type="stmt"/>
+        <line num="16" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="17" count="0" type="stmt"/>
+        <line num="20" count="1" type="stmt"/>
+        <line num="21" count="0" type="stmt"/>
+        <line num="24" count="0" type="stmt"/>
+        <line num="26" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="27" count="0" type="stmt"/>
+        <line num="30" count="1" type="stmt"/>
+        <line num="31" count="0" type="stmt"/>
+        <line num="34" count="1" type="stmt"/>
+        <line num="35" count="0" type="stmt"/>
+        <line num="38" count="1" type="stmt"/>
+        <line num="39" count="0" type="stmt"/>
+        <line num="43" count="1" type="stmt"/>
+        <line num="44" count="0" type="stmt"/>
+        <line num="47" count="1" type="stmt"/>
+        <line num="48" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="49" count="0" type="stmt"/>
+        <line num="52" count="1" type="stmt"/>
+        <line num="53" count="0" type="stmt"/>
+        <line num="56" count="0" type="stmt"/>
+        <line num="58" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="59" count="0" type="stmt"/>
+        <line num="62" count="1" type="stmt"/>
+        <line num="63" count="0" type="stmt"/>
+        <line num="66" count="1" type="stmt"/>
+        <line num="67" count="0" type="stmt"/>
+        <line num="70" count="1" type="stmt"/>
+        <line num="71" count="0" type="stmt"/>
+      </file>
+      <file name="ValueError.ts" path="/Users/buckyallen/Documents-Local/local-repos/vscode-tree-sitter-dev/server/src/diagnostics/ValueError.ts">
+        <metrics statements="44" coveredstatements="14" conditionals="13" coveredconditionals="1" methods="15" coveredmethods="1"/>
+        <line num="2" count="1" type="stmt"/>
+        <line num="4" count="1" type="stmt"/>
+        <line num="6" count="1" type="cond" truecount="0" falsecount="1"/>
+        <line num="7" count="0" type="stmt"/>
+        <line num="10" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="11" count="1" type="stmt"/>
+        <line num="12" count="0" type="stmt"/>
+        <line num="15" count="1" type="stmt"/>
+        <line num="16" count="0" type="stmt"/>
+        <line num="19" count="1" type="stmt"/>
+        <line num="20" count="0" type="stmt"/>
+        <line num="23" count="1" type="stmt"/>
+        <line num="24" count="0" type="stmt"/>
+        <line num="27" count="1" type="stmt"/>
+        <line num="28" count="0" type="stmt"/>
+        <line num="31" count="1" type="stmt"/>
+        <line num="32" count="0" type="stmt"/>
+        <line num="35" count="1" type="stmt"/>
+        <line num="36" count="0" type="stmt"/>
+        <line num="39" count="1" type="stmt"/>
+        <line num="40" count="0" type="stmt"/>
+        <line num="41" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="42" count="0" type="stmt"/>
+        <line num="44" count="0" type="stmt"/>
+        <line num="45" count="0" type="stmt"/>
+        <line num="49" count="0" type="stmt"/>
+        <line num="50" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="51" count="0" type="stmt"/>
+        <line num="53" count="0" type="stmt"/>
+        <line num="54" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="55" count="0" type="stmt"/>
+        <line num="57" count="0" type="stmt"/>
+        <line num="58" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="59" count="0" type="stmt"/>
+        <line num="61" count="0" type="stmt"/>
+        <line num="62" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="63" count="0" type="stmt"/>
+        <line num="65" count="0" type="stmt"/>
+        <line num="66" count="0" type="stmt"/>
+        <line num="67" count="0" type="stmt"/>
+        <line num="70" count="1" type="stmt"/>
+        <line num="71" count="0" type="stmt"/>
+        <line num="74" count="1" type="stmt"/>
+        <line num="75" count="0" type="stmt"/>
+      </file>
+      <file name="Warning.ts" path="/Users/buckyallen/Documents-Local/local-repos/vscode-tree-sitter-dev/server/src/diagnostics/Warning.ts">
+        <metrics statements="6" coveredstatements="4" conditionals="2" coveredconditionals="2" methods="3" coveredmethods="1"/>
+        <line num="3" count="1" type="stmt"/>
+        <line num="5" count="1" type="cond" truecount="2" falsecount="0"/>
+        <line num="6" count="1" type="stmt"/>
+        <line num="7" count="0" type="stmt"/>
+        <line num="10" count="1" type="stmt"/>
+        <line num="11" count="0" type="stmt"/>
+      </file>
+      <file name="index.ts" path="/Users/buckyallen/Documents-Local/local-repos/vscode-tree-sitter-dev/server/src/diagnostics/index.ts">
+        <metrics statements="3" coveredstatements="3" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="1" type="stmt"/>
+        <line num="2" count="1" type="stmt"/>
+        <line num="3" count="1" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.lints">
+      <metrics statements="187" coveredstatements="67" conditionals="138" coveredconditionals="14" methods="39" coveredmethods="16"/>
+      <file name="NamedNode.ts" path="/Users/buckyallen/Documents-Local/local-repos/vscode-tree-sitter-dev/server/src/lints/NamedNode.ts">
+        <metrics statements="107" coveredstatements="8" conditionals="111" coveredconditionals="2" methods="15" coveredmethods="1"/>
+        <line num="5" count="1" type="stmt"/>
+        <line num="6" count="1" type="stmt"/>
+        <line num="7" count="1" type="stmt"/>
+        <line num="9" count="1" type="stmt"/>
+        <line num="11" count="1" type="stmt"/>
+        <line num="12" count="1" type="stmt"/>
+        <line num="14" count="0" type="stmt"/>
+        <line num="15" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="16" count="0" type="stmt"/>
+        <line num="18" count="0" type="stmt"/>
+        <line num="19" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="20" count="0" type="stmt"/>
+        <line num="22" count="0" type="stmt"/>
+        <line num="23" count="0" type="stmt"/>
+        <line num="24" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="25" count="0" type="stmt"/>
+        <line num="28" count="0" type="stmt"/>
+        <line num="29" count="0" type="stmt"/>
+        <line num="30" count="0" type="stmt"/>
+        <line num="33" count="0" type="stmt"/>
+        <line num="38" count="0" type="cond" truecount="0" falsecount="7"/>
+        <line num="43" count="0" type="stmt"/>
+        <line num="46" count="0" type="stmt"/>
+        <line num="48" count="0" type="stmt"/>
+        <line num="53" count="0" type="cond" truecount="0" falsecount="5"/>
+        <line num="56" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="58" count="0" type="stmt"/>
+        <line num="60" count="0" type="stmt"/>
+        <line num="62" count="0" type="stmt"/>
+        <line num="67" count="0" type="stmt"/>
+        <line num="68" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="69" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="74" count="0" type="stmt"/>
+        <line num="75" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="76" count="0" type="stmt"/>
+        <line num="77" count="0" type="stmt"/>
+        <line num="79" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="80" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="85" count="0" type="stmt"/>
+        <line num="86" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="87" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="88" count="0" type="stmt"/>
+        <line num="91" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="93" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="94" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="97" count="0" type="stmt"/>
+        <line num="99" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="100" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="103" count="0" type="stmt"/>
+        <line num="108" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="109" count="0" type="stmt"/>
+        <line num="112" count="0" type="stmt"/>
+        <line num="113" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="114" count="0" type="stmt"/>
+        <line num="116" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="117" count="0" type="stmt"/>
+        <line num="119" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="120" count="0" type="stmt"/>
+        <line num="123" count="0" type="stmt"/>
+        <line num="124" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="125" count="0" type="stmt"/>
+        <line num="126" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="127" count="0" type="stmt"/>
+        <line num="132" count="0" type="stmt"/>
+        <line num="133" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="134" count="0" type="stmt"/>
+        <line num="135" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="136" count="0" type="stmt"/>
+        <line num="139" count="0" type="stmt"/>
+        <line num="140" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="141" count="0" type="stmt"/>
+        <line num="143" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="147" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="148" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="151" count="0" type="stmt"/>
+        <line num="154" count="0" type="stmt"/>
+        <line num="156" count="0" type="stmt"/>
+        <line num="160" count="1" type="cond" truecount="2" falsecount="0"/>
+        <line num="161" count="1" type="stmt"/>
+        <line num="162" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="163" count="0" type="stmt"/>
+        <line num="164" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="165" count="0" type="stmt"/>
+        <line num="172" count="0" type="stmt"/>
+        <line num="173" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="174" count="0" type="stmt"/>
+        <line num="176" count="0" type="stmt"/>
+        <line num="178" count="0" type="stmt"/>
+        <line num="179" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="180" count="0" type="stmt"/>
+        <line num="181" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="182" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="187" count="0" type="stmt"/>
+        <line num="188" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="189" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="190" count="0" type="stmt"/>
+        <line num="193" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="194" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="195" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="198" count="0" type="stmt"/>
+        <line num="200" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="201" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="204" count="0" type="stmt"/>
+        <line num="209" count="0" type="cond" truecount="0" falsecount="5"/>
+        <line num="212" count="0" type="stmt"/>
+        <line num="215" count="0" type="stmt"/>
+        <line num="217" count="0" type="stmt"/>
+      </file>
+      <file name="SingularMatchLint.ts" path="/Users/buckyallen/Documents-Local/local-repos/vscode-tree-sitter-dev/server/src/lints/SingularMatchLint.ts">
+        <metrics statements="10" coveredstatements="7" conditionals="2" coveredconditionals="2" methods="7" coveredmethods="4"/>
+        <line num="4" count="1" type="stmt"/>
+        <line num="9" count="1" type="stmt"/>
+        <line num="13" count="40" type="stmt"/>
+        <line num="16" count="12" type="stmt"/>
+        <line num="17" count="1" type="stmt"/>
+        <line num="19" count="0" type="stmt"/>
+        <line num="25" count="19" type="cond" truecount="2" falsecount="0"/>
+        <line num="29" count="0" type="stmt"/>
+        <line num="33" count="12" type="stmt"/>
+        <line num="40" count="0" type="stmt"/>
+      </file>
+      <file name="all.ts" path="/Users/buckyallen/Documents-Local/local-repos/vscode-tree-sitter-dev/server/src/lints/all.ts">
+        <metrics statements="2" coveredstatements="2" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
+        <line num="1" count="2" type="stmt"/>
+        <line num="3" count="1" type="stmt"/>
+      </file>
+      <file name="index.ts" path="/Users/buckyallen/Documents-Local/local-repos/vscode-tree-sitter-dev/server/src/lints/index.ts">
+        <metrics statements="9" coveredstatements="5" conditionals="0" coveredconditionals="0" methods="3" coveredmethods="1"/>
+        <line num="5" count="1" type="stmt"/>
+        <line num="6" count="1" type="stmt"/>
+        <line num="7" count="1" type="stmt"/>
+        <line num="8" count="8" type="stmt"/>
+        <line num="12" count="1" type="stmt"/>
+        <line num="13" count="0" type="stmt"/>
+        <line num="14" count="0" type="stmt"/>
+        <line num="15" count="0" type="stmt"/>
+        <line num="16" count="0" type="stmt"/>
+      </file>
+      <file name="nominal.ts" path="/Users/buckyallen/Documents-Local/local-repos/vscode-tree-sitter-dev/server/src/lints/nominal.ts">
+        <metrics statements="59" coveredstatements="45" conditionals="25" coveredconditionals="10" methods="13" coveredmethods="9"/>
+        <line num="3" count="1" type="stmt"/>
+        <line num="4" count="1" type="stmt"/>
+        <line num="5" count="1" type="stmt"/>
+        <line num="6" count="1" type="stmt"/>
+        <line num="7" count="1" type="stmt"/>
+        <line num="9" count="1" type="stmt"/>
+        <line num="10" count="1" type="stmt"/>
+        <line num="12" count="2" type="stmt"/>
+        <line num="13" count="2" type="stmt"/>
+        <line num="14" count="2" type="stmt"/>
+        <line num="16" count="2" type="stmt"/>
+        <line num="17" count="2" type="stmt"/>
+        <line num="21" count="2" type="stmt"/>
+        <line num="22" count="2" type="cond" truecount="2" falsecount="1"/>
+        <line num="24" count="1" type="stmt"/>
+        <line num="26" count="1" type="stmt"/>
+        <line num="28" count="0" type="stmt"/>
+        <line num="33" count="1" type="stmt"/>
+        <line num="34" count="1" type="stmt"/>
+        <line num="36" count="1" type="stmt"/>
+        <line num="37" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="38" count="0" type="stmt"/>
+        <line num="40" count="1" type="stmt"/>
+        <line num="43" count="2" type="stmt"/>
+        <line num="45" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="46" count="1" type="stmt"/>
+        <line num="50" count="1" type="stmt"/>
+        <line num="51" count="1" type="stmt"/>
+        <line num="53" count="3" type="stmt"/>
+        <line num="54" count="3" type="cond" truecount="1" falsecount="1"/>
+        <line num="55" count="3" type="stmt"/>
+        <line num="59" count="1" type="stmt"/>
+        <line num="60" count="1" type="stmt"/>
+        <line num="62" count="0" type="stmt"/>
+        <line num="63" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="64" count="0" type="stmt"/>
+        <line num="68" count="1" type="stmt"/>
+        <line num="69" count="1" type="stmt"/>
+        <line num="71" count="0" type="stmt"/>
+        <line num="72" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="73" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="74" count="0" type="stmt"/>
+        <line num="79" count="1" type="stmt"/>
+        <line num="80" count="1" type="stmt"/>
+        <line num="82" count="2" type="stmt"/>
+        <line num="83" count="2" type="stmt"/>
+        <line num="84" count="2" type="stmt"/>
+        <line num="85" count="2" type="stmt"/>
+        <line num="86" count="2" type="cond" truecount="5" falsecount="1"/>
+        <line num="87" count="0" type="stmt"/>
+        <line num="89" count="2" type="stmt"/>
+        <line num="90" count="2" type="stmt"/>
+        <line num="94" count="1" type="stmt"/>
+        <line num="95" count="1" type="stmt"/>
+        <line num="96" count="1" type="stmt"/>
+        <line num="114" count="0" type="stmt"/>
+        <line num="115" count="0" type="stmt"/>
+        <line num="116" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="117" count="0" type="stmt"/>
+      </file>
+    </package>
+  </project>
+</coverage>

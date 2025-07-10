@@ -1,0 +1,24 @@
+{
+    "jestrunner.jestCommand": "node --experimental-vm-modules --experimental-modules --experimental-wasm-modules node_modules/jest/bin/jest.js",
+    "jestrunner.debugOptions": {
+        "runtimeExecutable": "server/src/node_modules/.bin/jest",
+        "runtimeArgs": ["test", "${fileBasename}", "--runInBand", "--no-cache", "--watchAll=false", "--no-color"]
+    },
+    "jestrunner.configPath": "server/jest.config.js",
+    // "jest.rootPath": "server/",
+    // "jest.runMode": "watch",
+    "jest.debugMode": true,
+    // "jest.virtualFolders": [
+    //     {
+    //         "name": "server",
+    //         "rootPath": "server"
+
+    //     }
+    // ],
+    // "jest.runMode": "on-save"
+    // "jest.rootPath": "server"
+    "jest.runMode": {
+        "type": "watch",
+        "testFileOnly": false
+    }
+}

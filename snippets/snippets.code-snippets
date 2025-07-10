@@ -1,0 +1,86 @@
+{
+    "eq": {
+        "prefix": ["#eq?", "eq"],
+        "body": "(#eq? @$1 \"$2\")",
+        "scope": "tree-sitter-query"
+    },
+    "any-eq": {
+        "prefix": ["#any-eq?", "any-eq"],
+        "body": "(#any-eq? @$1 \"$2\")",
+        "scope": "tree-sitter-query"
+    },
+    "any-not-eq": {
+        "prefix": ["#any-not-eq?", "any-not-eq"],
+        "body": "(#any-not-eq? @$1 \"$2\")",
+        "scope": "tree-sitter-query"
+    },
+    "not-eq": {
+        "prefix": ["#not-eq?", "not-eq"],
+        "body": "(#not-eq? @$1 \"$2\")",
+        "scope": "tree-sitter-query"
+    },
+
+    "any-of": {
+        "prefix": ["#any-of?", "any-of"],
+        "body": "(#any-of? @$1 \"$2\")",
+        "scope": "tree-sitter-query"
+    },
+
+    "is": {
+        "prefix": ["#is?", "is"],
+        "body": "(#is? $1)",
+        "scope": "tree-sitter-query"
+    },
+    "any-is": {
+        "prefix": ["#any-is?", "any-is"],
+        "body": "(#any-is? $1)",
+        "scope": "tree-sitter-query"
+    },
+    "any-is-not": {
+        "prefix": ["#any-is-not?", "any-is-not"],
+        "body": "(#any-is-not? $1)",
+        "scope": "tree-sitter-query"
+    },
+    "is-not": {
+        "prefix": ["#is-not?", "is-not"],
+        "body": "(#is-not? $1)",
+        "scope": "tree-sitter-query"
+    },
+
+    "match": {
+        "prefix": ["#match?", "match"],
+        "body": "(#match? @$1 \"$2\")",
+        "scope": "tree-sitter-query"
+    },
+    "any-match": {
+        "prefix": ["#any-match?", "any-match"],
+        "body": "(#any-match? @$1 \"$2\")",
+        "scope": "tree-sitter-query"
+    },
+    "any-not-match": {
+        "prefix": ["#any-not-match?", "any-not-match"],
+        "body": "(#any-not-match? @$1 \"$2\")",
+        "scope": "tree-sitter-query"
+    },
+    "not-match": {
+        "prefix": ["#not-match?", "not-match"],
+        "body": "(#not-match? @$1 \"$2\")",
+        "scope": "tree-sitter-query"
+    },
+
+    "set": {
+        "prefix": ["#set!", "set"],
+        "body": "(#set! $1 \"$2\")",
+        "scope": "tree-sitter-query"
+    },
+    "select-adjacent": {
+        "prefix": ["#select-adjacent!", "select-adjacent"],
+        "body": "(#select-adjacent! @$1 @$2)",
+        "scope": "tree-sitter-query"
+    },
+    "strip": {
+        "prefix": ["#strip!", "strip"],
+        "body": "(#strip! @$1 \"$2\")",
+        "scope": "tree-sitter-query"
+    }
+}

@@ -1,0 +1,68 @@
+{
+  "name": "vscode-tree-sitter-dev",
+  "displayName": "VSCode tree-sitter Development",
+  "description": "An extension to aid in development of tree-sitter grammars",
+  "version": "0.0.1",
+  "main": "./client/out/extension",
+  "scripts": {
+    "compile": "tsc -b",
+    "watch": "tsc -b -w",
+    "postinstall": "cd client && npm install && cd ../server && npm install && cd .."
+  },
+  "engines": {
+    "vscode": "^1.99.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "activationEvents": [
+    "workspaceContains:queries/**/*.scm",
+    "workspaceContains:queries/**/*.scheme",
+    "workspaceContains:**/*.scm",
+    "workspaceContains:**/*.scheme",
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "snippets": [
+      {
+        "language": "tree-sitter-query",
+        "path": "snippets/snippets.code-snippets"
+      }
+    ],
+    "languages": [
+      {
+        "id": "tree-sitter-query",
+        "aliases": [
+          "tree-sitter Query"
+        ],
+        "extensions": [
+          ".scm",
+          ".scheme"
+        ],
+        "configuration": "server/src/language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "tree-sitter-query",
+        "scopeName": "source.tree-sitter-query",
+        "path": "server/src/syntaxes/tree-sitter-query.tmLanguage.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "vscode-tree-sitter-dev.printDocumentTree",
+        "title": "Print Document Tree"
+      }
+    ]
+  },
+  "dependencies": {
+    "@types/node": "^22.14.1",
+    "typescript": "^5.8.3"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "jest": "^30.0.3",
+    "ts-jest": "^29.4.0"
+  }
+}

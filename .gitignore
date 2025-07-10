@@ -1,0 +1,9 @@
+node_modules
+*.vsix
+**/**/.DS_Store
+
+jq
+package-lock.json
+vsc-extension-quickstart.md
+
+.vscode/launch.json

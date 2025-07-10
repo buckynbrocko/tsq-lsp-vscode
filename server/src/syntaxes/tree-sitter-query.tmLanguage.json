@@ -1,0 +1,208 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "tree-sitter-query",
+	"fileTypes": [
+		"*.scm",
+		"*.scheme"
+	],
+	"patterns": [
+		{
+			"include": "#comment"
+		},
+		{
+			"include": "#bad"
+		},
+		{
+			"include": "#string"
+		},
+		{
+			"include": "#capture"
+		},
+		{
+			"include": "#quantifier"
+		},
+		{
+			"include": "#predicate"
+		},
+		{
+			"include": "#field"
+		},
+		{
+			"include": "#anchor"
+		},
+		{
+			"include": "#wildcard"
+		},
+		{
+			"include": "#qualified-identifier"
+		},
+		{
+			"include": "#named-node"
+		},
+		{
+			"include": "#directive"
+		}
+	],
+	"repository": {
+		"comment": {
+			"name": "comment.tree-sitter-query",
+			"begin": ";",
+			"end": "\\n"
+		},
+		"named-node": {
+			"name": "entity.name.class.node.tree-sitter-query",
+			"match": "\\w+",
+			"captures": {
+				"0": {
+					"patterns": [
+						{
+							"include": "#identifier"
+						}
+					]
+				}
+			}
+		},
+		"identifier": {
+			"comment": "identifier",
+			"match": "_{2,}|_*[a-zA-Z]+\\w*"
+		},
+		"qualified-identifier": {
+			"name": "pattern.tree-sitter-query",
+			"match": "([\\w-]+)(\\.([\\w-]+))+",
+			"captures": {
+				"1": {
+					"name": "variable.other.pattern.tree-sitter-query",
+					"patterns": [
+						{
+							"include": "#identifier"
+						},
+						{
+							"include": "#kebab"
+						}
+					]
+				},
+				"3": {
+					"name": "variable.other.pattern.tree-sitter-query",
+					"patterns": [
+						{
+							"include": "#identifier"
+						},
+						{
+							"include": "#kebab"
+						}
+					]
+				}
+			}
+		},
+		"field": {
+			"comment": "variable.other.property.field.tree-sitter-query",
+			"match": "([a-zA-Z_]+\\w*)(\\*|\\+|\\?)?:",
+			"captures": {
+				"1": {
+					"name": "variable.other.property.field.tree-sitter-query"
+				},
+				"2": {
+					"name": "keyword.operator.quantifier.tree-sitter-query",
+					"patterns": [
+						{
+							"include": "quantifier"
+						}
+					]
+				}
+			}
+		},
+		"kebab": {
+			"name": "entity.name.kebab.tree-sitter-query",
+			"match": "[a-zA-Z_]+(-?\\w+)*"
+		},
+		"capture": {
+			"comment": "storage.name.selector.capture.tree-sitter-query",
+			"comment2": "@[a-zA-Z_]+(-?\\w+)*(\\.[a-zA-Z_]+(-?[\\w]+)*)*",
+			"match": "(@[\\w-]+)(\\.([\\w-]+))*",
+			"captures": {
+				"1": {
+					"name": "storage.name.selector.capture.tree-sitter-query",
+					"patterns": [
+						{
+							"include": "#kebab"
+						}
+					]
+				},
+				"3": {
+					"name": "storage.name.selector.capture.tree-sitter-query",
+					"patterns": [
+						{
+							"include": "#kebab"
+						}
+					]
+				}
+			}
+		},
+		"quantifier": {
+			"name": "keyword.operator.quantifier.tree-sitter-query",
+			"match": "\\+|\\?|\\*|!"
+		},
+		"predicate": {
+			"name": "entity.name.function.defaultLibrary.predicate.tree-sitter-query",
+			"match": "(#)([a-zA-Z_]+(-?\\w+)*)(\\?|\\!)",
+			"captures": {
+				"1": {
+					"name": "keyword.other"
+				},
+				"2": {
+					"name": "entity.name.function.defaultLibrary.predicate.tree-sitter-query"
+				},
+				"4": {
+					"name": "keyword.other"
+				}
+			}
+		},
+		"directive": {
+			"name": "entity.name.function.defaultLibrary.directive.tree-sitter-query",
+			"match": "#[a-zA-Z_]+(-?\\w+)*\\!"
+		},
+		"wildcard": {
+			"name": "keyword.other.wildcard.tree-sitter-query",
+			"comment": "variable.language.wildcard.tree-sitter-query",
+			"match": "\\b_\\b"
+		},
+		"anchor": {
+			"match": "\\W?(\\.)\\W?",
+			"captures": {
+				"1": {
+					"name": "keyword.control.anchor.tree-sitter-query"
+				}
+			}
+		},
+		"missing": {
+			"name": "constant.missing.tree-sitter-query",
+			"match": "MISSING"
+		},
+		"error": {
+			"name": "constant.language.error-node.tree-sitter-query",
+			"match": "ERROR"
+		},
+		"bad": {
+			"patterns": [
+				{
+					"include": "#missing"
+				},
+				{
+					"include": "#error"
+				}
+			]
+		},
+		"string": {
+			"name": "string.quoted.double.tree-sitter-query",
+			"begin": "\"",
+			"end": "\"",
+			"patterns": [
+				{
+					"name": "constant.character.escape.tree-sitter-query",
+					"match": "\\\\\\\\."
+				}
+			]
+		}
+	},
+	"scopeName": "source.tree-sitter-query"
+}
