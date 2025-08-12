@@ -1,6 +1,6 @@
 import { MarkupContent } from 'vscode-languageserver';
 import { CheckableSubnode } from './Checkable/Subnode';
-import { markupCode } from './completions_/completions';
+import { markupCode } from './completions/completions';
 import { Dict } from './Dict';
 import { FieldName, Literal, Parenthesized, QuotedLiteral, TypeName, unionString } from './typeChecking';
 

@@ -1,0 +1,12 @@
+((identifier) @variable.builtin
+  (#eq? @variable.builtin "self"))
+
+(
+  (pair
+    key: (property_identifier) @key-name
+    value: (identifier) @value-name)
+  (#eq? @key-name @value-name)
+)
+
+((comment)+ @comment.empty
+  (#any-eq? @comment.empty "//"))

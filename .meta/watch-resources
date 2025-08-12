@@ -1,0 +1,14 @@
+#!/bin/zsh
+
+fswatch -0 \
+    server/__tests__/formatting/corpus/*.source \
+    server/__tests__/formatting/corpus/*.expectation \
+    server/__tests__/resources/*.scm \
+    resources/queries/*.scm \
+    | while read -d "" event
+do
+    echo "Change: ${event}"
+    touch server/__tests__/formatting/index.test.ts
+    touch server/__tests__/queries.test.ts
+    # touch server/__tests__/formatting/index.test.ts
+done

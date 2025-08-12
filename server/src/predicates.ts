@@ -1,19 +1,132 @@
+import { TSNode } from './reexports';
+
 export type Predicate<T> = (arg: T) => boolean;
 export function isString(object: unknown): object is string {
     return typeof object === 'string';
+}
+
+export function isPositiveOrUndefined(object: number | undefined): boolean {
+    return object === undefined || object >= 0;
 }
 
 export function isBoolean(object: unknown): object is boolean {
     return typeof object === 'boolean';
 }
 
+export function hasNonZeroLength<T>(object: T[]): object is [T, ...T[]] {
+    return !!object.length;
+}
+
 // export function isType<T extends string, Ts extends [T, ...T[]], O extends TSNode>(object: O, ...types: T[]): object is O & { type: (typeof types)[number] };
 // export function isType<T extends string, Ts extends [T, ...T[]], O extends TSNode>(object: O, types: T): object is O & { type: typeof types };
-export function isType<T extends string, O extends { type: any }>(
+export function isType_<T extends string, O extends { type: any }>(
     object: O,
     ...types: [T, ...T[]]
 ): object is O & { type: (typeof types)[number] } {
     return types.some(type => type === object.type);
+}
+
+export type Typed<T = any> = { type: T };
+
+export function isTypeFn<T extends string, O extends { type: any }>(
+    ...types: [T, ...T[]]
+): (object: O) => object is O & { type: (typeof types)[number] } {
+    return (object: O): object is O & { type: (typeof types)[number] } => {
+        return types.some(type => type === object.type);
+    };
+}
+
+export function isType<T extends string>(node: Typed, ...types: [T, ...T[]]): node is typeof node & Typed<T>;
+export function isType<T extends string>(...types: [T, ...T[]]): (object: TSNode) => object is typeof object & Typed<T>;
+export function isType<T extends string>(...args: [Typed, T, ...T[]] | [T, ...T[]]) {
+    const [first, ...rest] = args;
+    if (typeof first !== 'object') {
+        const types = [first, ...rest];
+        return (object: TSNode): object is typeof object & Typed<T> => (types as string[]).includes(object.type);
+    }
+    const [node, ...types] = [first, ...rest];
+    return (types as string[]).includes(node.type);
+}
+
+export function isNotType<T extends string>(node: Typed, ...types: [T, ...T[]]): node is typeof node & Typed<Exclude<any, T>>;
+export function isNotType<T extends string>(
+    ...types: [T, ...T[]]
+): (object: TSNode) => object is typeof object & Typed<Exclude<any, T>>;
+export function isNotType<T extends string>(...args: [Typed, T, ...T[]] | [T, ...T[]]) {
+    const [first, ...rest] = args;
+    if (typeof first !== 'object') {
+        const types = [first, ...rest];
+        return (object: TSNode): object is typeof object & Typed<Exclude<any, T>> => !(types as string[]).includes(object.type);
+    }
+    const [node, ...types] = [first, ...rest];
+    return !(types as string[]).includes(node.type);
+}
+
+type PredicateOrPartial<O, T> = (...args: [O, T, ...T[]] | [T, ...T[]]) => {};
+type Predicate_<O, I = any> = O extends I ? (arg: I) => arg is O : (arg: any) => arg is O;
+type SpreadicateFunction<F, T, R> = (
+    ...args: [F, T, ...T[]] | [T, ...T[]]
+) => typeof args extends [F, T, ...T[]] ? boolean : (object: F) => object is F & R;
+export type HasNextSibling<N extends { nextSibling: any } = TSNode, T extends string = string> = N & {
+    nextSibling: NonNullable<N['nextSibling']> & { type: T };
+};
+export type HasNoNextSibling<T extends { nextSibling: any } = TSNode> = T & { nextSibling: null };
+
+export function hasNextSibling<T extends { nextSibling: any }>(object: T): object is HasNextSibling<T> {
+    return !!object.nextSibling;
+}
+
+export type HasPreviousSibling<N extends { previousSibling: any } = TSNode, T extends string = string> = N & {
+    previousSibling: NonNullable<N['previousSibling']> & { type: T };
+};
+export type HasNoPreviousSibling<T extends { previousSibling: any } = TSNode> = T & { previousSibling: null };
+
+export function hasPreviousSibling<T extends { previousSibling: any }>(object: T): object is HasPreviousSibling<T> {
+    return !!object.previousSibling;
+}
+
+export function nextSiblingIsType<T extends string>(
+    node: HasNoNextSibling,
+    ...types: [T, ...T[]]
+): node is HasNextSibling<typeof node, T> & never;
+export function nextSiblingIsType<T extends string>(
+    node: HasNextSibling,
+    ...types: [T, ...T[]]
+): node is HasNextSibling<typeof node, T>;
+export function nextSiblingIsType<T extends string>(
+    node: TSNode,
+    ...types: [T, ...T[]]
+): node is HasNextSibling<typeof node> & HasNextSibling<typeof node, T>;
+export function nextSiblingIsType<T extends string>(
+    ...types: [T, ...T[]]
+): (object: TSNode) => object is HasNextSibling<typeof object> & HasNextSibling<typeof object, T>;
+export function nextSiblingIsType<T extends string>(...args: [TSNode, T, ...T[]] | [T, ...T[]]) {
+    const [first, ...rest] = args;
+    if (typeof first !== 'object') {
+        const types = [first, ...rest];
+        return (object: TSNode): object is HasNextSibling<typeof object> & HasNextSibling<typeof object, T> =>
+            !!object.nextSibling && (types as string[]).includes(object.nextSibling.type);
+    }
+    const [node, ...types] = [first, ...rest];
+    return !!node.nextSibling && (types as string[]).includes(node.nextSibling.type);
+}
+
+export function nextSiblingIsNotType<T extends string>(node: HasNextSibling<TSNode>, ...types: [T, ...T[]]): boolean;
+export function nextSiblingIsNotType<T extends string>(
+    ...types: [T, ...T[]]
+): (object: TSNode & { nextSibling: TSNode }) => boolean;
+export function nextSiblingIsNotType<T extends string>(...args: [HasNextSibling<TSNode>, T, ...T[]] | [T, ...T[]]) {
+    const [first, ...rest] = args;
+    if (typeof first !== 'object') {
+        const types = [first, ...rest];
+        return (object: HasNextSibling<TSNode>) => !(types as string[]).includes(object.nextSibling.type);
+    }
+    const [node, ...types] = [first, ...rest];
+    return !(types as string[]).includes(node.nextSibling.type);
+}
+
+export function isNotTypeFn<T extends string>(...types: [T, ...T[]]): (object: { type: any }) => boolean {
+    return (object: { type: any }) => !types.includes(object.type);
 }
 
 export function everyValueOfSet<T>(set: Set<T>, predicate: Predicate<T>) {

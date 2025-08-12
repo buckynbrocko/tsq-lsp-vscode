@@ -5,5 +5,9 @@ node_modules
 jq
 package-lock.json
 vsc-extension-quickstart.md
+.ignore
+*.ignore
+*.ignore.*
 
 .vscode/launch.json
+.vscode

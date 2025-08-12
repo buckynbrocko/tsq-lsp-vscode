@@ -19,6 +19,15 @@ export class TypeEnvironment extends HasSignatureAndFields {
         super();
     }
 
+    get extraTypeNames(): Set<TypeName> {
+        return new Set(
+            this.types
+                .entriesArray()
+                .filter(([name, info]) => !!info.extra)
+                .map(([name, _]) => name)
+        );
+    }
+
     get typeNames(): Set<TypeName> {
         return new Set(this.types.keys());
     }

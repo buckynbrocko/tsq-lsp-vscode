@@ -1,5 +1,6 @@
 import { Dict } from '../Dict';
-import { enumNames, TSNode } from '../junk_drawer';
+import { enumNames } from '../itertools';
+import { TSNode } from '../reexports';
 export { TOKEN_MAP as MAP, TOKEN_MODIFIERS as MODIFIERS, TOKEN_TYPES as TYPES };
 
 export type EncodedTokenData = [number, number, number, number, number];
@@ -83,33 +84,64 @@ export namespace RelativeTokenData {
 }
 
 export enum TokenType {
-    nonDescript,
-    decorator,
-    comment,
-    regexp,
+    /** standard */
+
+    namespace,
+    type,
+    class,
+    enum,
+    interface,
+    struct,
+    typeParameter,
+    parameter,
     variable,
-    escapeSequence,
+    property,
+    enumMember,
+    event,
+    function,
+    method,
+    macro,
     keyword,
+    modifier,
+    comment,
+    string,
+    number,
+    regexp,
+    operator,
+    decorator,
+    /** custom */
+    // nonDescript,
+    // escapeSequence,
 }
 
 export enum TokenModifier {
     none = 0,
-    defaultLibrary = 1,
-    // another = 1 << 2,
-    // escapeSequence = 1 << 3,
+    /** standard */
+    declaration = 1 << 0,
+    definition = 1 << 1,
+    readonly = 1 << 2,
+    static = 1 << 3,
+    deprecated = 1 << 4,
+    abstract = 1 << 5,
+    async = 1 << 6,
+    modification = 1 << 7,
+    documentation = 1 << 8,
+    defaultLibrary = 1 << 9,
 }
 
 export type TokenTypeName = keyof typeof TokenType;
+// export type TokenModifierName = keyof typeof TokenModifier;
 export type TokenModifierName = Exclude<keyof typeof TokenModifier, 'none'>;
 
 export const TOKEN_TYPES: TokenTypeName[] = enumNames(TokenType);
 export const TOKEN_MODIFIERS: TokenModifierName[] = enumNames(TokenModifier).filter(name => name !== 'none');
+// export const TOKEN_MODIFIERS: TokenModifierName[] = enumNames(TokenModifier);
 
 export type TokenMap = Dict<string, [TokenType, TokenModifier]>;
 export function TokenMap(data: [string, TokenType, TokenModifier?][]): TokenMap {
     let entries: [string, [TokenType, TokenModifier]][] = data.map(([name, type, modifier]) => [
         name,
-        [type, modifier || TokenModifier.none],
+        [type, modifier ?? TokenModifier.none],
     ]);
     return new Dict(entries);
 }
@@ -117,7 +149,8 @@ export function TokenMap(data: [string, TokenType, TokenModifier?][]): TokenMap 
 export const TOKEN_MAP: TokenMap = TokenMap([
     ['string.regexp', TokenType.regexp], //
     ['pattern.built-in', TokenType.variable, TokenModifier.defaultLibrary],
+    // ['pattern.built-in', TokenType.variable],
     ['capture-name', TokenType.decorator],
-    ['string.escape', TokenType.escapeSequence],
+    // ['string.escape', TokenType.escapeSequence],
     ['hanging-capture', TokenType.keyword],
 ]);

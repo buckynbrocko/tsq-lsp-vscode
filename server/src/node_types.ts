@@ -1,5 +1,5 @@
 // import { Node as TSNode } from 'web-tree-sitter';
-import { TSNode } from './junk_drawer';
+import { TSNode } from './reexports';
 import {
     hasPropertiesOfTypes,
     hasPropertyOfType,

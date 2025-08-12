@@ -1,5 +1,6 @@
-import { closestAncestorOfType } from './completions_/completions';
-import { Identifier, TSNode } from './junk_drawer';
+import { closestAncestorOfType } from './completions/completions';
+import { Identifier } from './junk_drawer';
+import { TSNode } from './reexports';
 
 export type TypeName = Brand<string, 'TypeName'>;
 export function TypeName(string_: string): TypeName {
@@ -29,17 +30,18 @@ export namespace TypeName {
     export function fromNode(node?: undefined, identifier?: undefined): undefined;
     export function fromNode(node?: TSNode, identifier?: TSNode): TypeName | undefined {
         if (!node) {
-            return;
+            return undefined;
         }
         identifier = identifier ?? Identifier.ofNode(node);
         if (!identifier) {
-            return;
+            return undefined;
         }
         if (node.type === 'named_node') {
             return (!identifier.isNamed ? '_' : identifier.text) as TypeName;
         } else if (node.type === 'anonymous_node') {
             return (!identifier.isNamed ? '_' : identifier.firstNamedChild?.text) as TypeName;
         }
+        return undefined;
     }
 
     export function ofClosestAncestorOfType(type: string, node?: TSNode): TypeName | undefined {

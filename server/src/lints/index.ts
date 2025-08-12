@@ -1,7 +1,7 @@
 import * as lsp from 'vscode-languageserver';
+import { TSNode } from '../reexports';
 import { TreeSitter } from '../TreeSitter';
 import { TypeEnvironment } from '../TypeEnvironment';
-import { TSNode } from '../junk_drawer';
 import * as _ALL from './all';
 export * from './all';
 export const ALL = Object.values(_ALL);

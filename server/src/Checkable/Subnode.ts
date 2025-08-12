@@ -1,4 +1,4 @@
-import { markupCode, signatureQuantifier } from '../completions_/completions';
+import { markupCode, signatureQuantifier } from '../completions/completions';
 import { Dict } from '../Dict';
 import { HasSignature } from '../Documentable';
 import { Children, Field, Fields } from '../node_types';
@@ -71,9 +71,7 @@ export function CheckableFields(fields: Fields, supertypeMap: SupertypeMap): Che
         name as FieldName,
         CheckableSubnode.fromChildAndSupertypeMap(info, supertypeMap),
     ]);
-    if (!!entries.length) {
-        return new Dict(entries);
-    }
+    return entries.length ? new Dict(entries) : undefined;
 }
 export type CheckableFieldMap = Dict<FieldName, CheckableSubnode>;
 export namespace CheckableFieldMap {

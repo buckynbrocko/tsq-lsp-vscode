@@ -1,7 +1,7 @@
 import * as lsp from 'vscode-languageserver';
-import { markupCode } from '../completions_/completions';
+import { markupCode } from '../completions/completions';
 import { Dict } from '../Dict';
-import { HasSignature, HasSignatureAndFields } from '../Documentable';
+import { HasSignatureAndFields } from '../Documentable';
 import { Leaf, Named, NodeType, Parent } from '../node_types';
 import { FieldName, Literal, TypeName } from '../typeChecking';
 import { CheckableFields, CheckableSubnode } from './Subnode';

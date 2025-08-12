@@ -1,7 +1,8 @@
 import * as lsp from 'vscode-languageserver';
 import { Tree } from 'web-tree-sitter';
 import { CheckableNamed } from '../Checkable/Named';
-import { Identifier, markup, TSNode } from '../junk_drawer';
+import { Identifier, markup } from '../junk_drawer';
+import { TSNode } from '../reexports';
 import { TreeSitter } from '../TreeSitter';
 import { FieldName, TypeName } from '../typeChecking';
 
@@ -149,6 +150,7 @@ function terminalNode(node_: TSNode): TerminalNode | undefined {
             return node as TerminalNode;
         }
     }
+    return undefined;
 }
 
 const ENCLOSING_TYPE_NAMES = ['program', 'capture', 'named_node', 'field_definition', 'negated_field'] as const;
@@ -166,6 +168,7 @@ function enclosingNode(node_: TSNode): EnclosingNode | undefined {
             return node;
         }
     }
+    return;
 }
 
 export type CompletionContext = { type: string };
@@ -522,6 +525,7 @@ export function closestAncestorOfType(node?: TSNode, ...types: string[]): TSNode
             return parent;
         }
     }
+    return;
 }
 
 // export function nameOfClosestAncestorOfType<T extends string>(type: T, node?: TSNode): T | undefined {

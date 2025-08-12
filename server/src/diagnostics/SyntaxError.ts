@@ -1,6 +1,6 @@
 import * as lsp from 'vscode-languageserver';
 import { Diagnostic } from 'vscode-languageserver';
-import { TSNode } from '../junk_drawer';
+import { TSNode } from '../reexports';
 import { isNotNullish } from '../predicates';
 import { DiagnosticError } from './DiagnosticError';
 

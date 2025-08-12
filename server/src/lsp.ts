@@ -4,13 +4,18 @@ import * as lsp from 'vscode-languageserver';
 import { DocumentUri, TextDocument } from 'vscode-languageserver-textdocument';
 import * as wts from 'web-tree-sitter';
 import { CheckableSubnode } from './Checkable/Subnode';
-import { TSQCompletionEngine } from './completions_/CompletionEngine';
-import { ALL, closestAncestorOfType, TSQCompletionContext } from './completions_/completions';
+import { TSQCompletionEngine } from './completions/CompletionEngine';
+import { ALL, closestAncestorOfType, TSQCompletionContext } from './completions/completions';
 import { Dict } from './Dict';
-import { _formatTree, Identifier, LSPRange, TSNode } from './junk_drawer';
+// import { formattingEdits } from './formatting/formatting-old';
+import { formatMatches } from './formatting';
+import { FormattingStyle } from './formatting/Style';
+import { _formatTree, Identifier } from './junk_drawer';
 import { lintAll } from './lints';
 import { NodeType, NodeTypes } from './node_types';
-import { isType } from './predicates';
+import { isNotNullish, isType_ } from './predicates';
+import { LSPRange } from './reexports/LSPRange';
+import { TSNode } from './reexports/TSNode';
 import * as Token from './Token';
 import { Capture, Captures, TreeSitter } from './TreeSitter';
 import { FieldName, Literal, TypeName } from './typeChecking';
@@ -42,19 +47,24 @@ export class LSPServer {
         builtins: ALL,
     };
 
-    constructor(connection: lsp.Connection, resourcesPath: string) {
+    constructor(connection: lsp.Connection, resourcesPath: string, connectionIsUnique: boolean = true) {
         this.connection = connection;
         this.resourcesPath = resourcesPath;
         // this.scheduledParser = new TreeThingy();
         this.documents.onDidChangeContent(this.onDidChangeContent.bind(this));
         // this.connection.onDidChangeTextDocument(this.onDidChangeTextDocument.bind(this));
 
-        this.connection.onHover(this.onHover.bind(this));
-        this.connection.onCompletion(this.onCompletion.bind(this));
-        this.connection.onExecuteCommand(this.onExecuteCommand.bind(this));
-        this.connection.onDocumentSymbol(this.onDocumentSymbol.bind(this));
-        // Object. this. typeof'onDocumentSymbol' in this && this.connection.onDocumentSymbol(this.onDocumentSymbol.bind(this));
-        this.connection.languages.semanticTokens.on(this.onSemanticTokensFull.bind(this));
+        if (connectionIsUnique) {
+            this.connection.onCompletion(this.onCompletion.bind(this));
+            this.connection.onDocumentSymbol(this.onDocumentSymbol.bind(this));
+            this.connection.onExecuteCommand(this.onExecuteCommand.bind(this));
+            this.connection.onHover(this.onHover.bind(this));
+            this.connection.onReferences(this.onReferences.bind(this));
+            this.connection.onRenameRequest(this.onRenameRequest.bind(this));
+            this.connection.onPrepareRename(this.onPrepareRename.bind(this));
+            this.connection.onDocumentFormatting(this.onDocumentFormatting.bind(this));
+            this.connection.languages.semanticTokens.on(this.onSemanticTokensFull.bind(this));
+        }
         this.documents.listen(this.connection);
         this.connection.onInitialize(this.onInitialize.bind(this));
         this.connection.onInitialized(this.onInitialized.bind(this));
@@ -62,52 +72,84 @@ export class LSPServer {
     }
 
     debug(argument: any, ...optionalParams: any[]): void {
-        if (this.DEBUG) {
-            console.debug(argument, ...optionalParams);
-        }
+        console.debug(`${this.workspace?.name ?? 'server'}: ${argument}`, ...optionalParams);
+
+        // if (this.DEBUG) {
+        //     console.debug(argument, ...optionalParams);
+        // }
     }
 
     //#region Handlers
 
     onInitialize(parameters: lsp.InitializeParams): lsp.InitializeResult {
-        const capabilities = parameters.capabilities;
+        const clientCapabilities = parameters.capabilities;
+        // parameters.workspaceFolders?.map(folder => console.debug(folder.uri));
+        this.workspace = parameters.workspaceFolders?.at(0);
+        !!parameters.initializationOptions && console.debug(parameters.initializationOptions);
 
-        this.supports.workspaceFolders = !!(capabilities.workspace && !!capabilities.workspace.workspaceFolders);
+        // this.supports.workspaceFolders = !!(clientCapabilities.workspace && !!clientCapabilities.workspace.workspaceFolders);
 
-        let result: lsp.InitializeResult = {
-            capabilities: {
-                documentSymbolProvider: true,
-                textDocumentSync: lsp.TextDocumentSyncKind.Incremental,
-                completionProvider: {
-                    triggerCharacters: ['(', '@', '#', '.', '[', '!', '"'],
-                    // resolveProvider: true,
-                },
-                // inlineCompletionProvider: {},
-                // definitionProvider: true,
-                // hoverProvider: true,
-                // renameProvider: { prepareProvider: true },
-                // referencesProvider: true,
-                // foldingRangeProvider: false,
-                // workspace: { workspaceFolders: { supported: true } },
-                semanticTokensProvider: {
-                    documentSelector: ['tree-sitter-query'],
-                    full: true,
-                    range: false,
+        let capabilities: lsp.ServerCapabilities = {
+            completionProvider: {
+                triggerCharacters: ['(', '@', '#', '.', '[', '!', '"'],
+                // resolveProvider: true,
+            },
 
-                    legend: {
-                        tokenModifiers: Token.MODIFIERS,
-                        tokenTypes: Token.TYPES,
-                    },
+            // definitionProvider: true,
+            documentSymbolProvider: true,
+            // diagnosticProvider,
+            documentFormattingProvider: true,
+            // foldingRangeProvider: false,
+            hoverProvider: true,
+            // inlineCompletionProvider: {},
+            renameProvider: { prepareProvider: true },
+            referencesProvider: true,
+            semanticTokensProvider: {
+                documentSelector: [{ pattern: '**/*.{scm,scheme}' }],
+                full: true,
+                range: false,
+                legend: {
+                    tokenModifiers: Token.MODIFIERS,
+                    tokenTypes: Token.TYPES,
                 },
             },
+            textDocumentSync: lsp.TextDocumentSyncKind.Incremental,
+            workspace: { workspaceFolders: { supported: false } },
         };
-        if (this.supports.workspaceFolders) {
-            result.capabilities.workspace = { workspaceFolders: { supported: true } };
-        }
-        if (this.onHover !== undefined) {
-            result.capabilities.hoverProvider = true;
-        }
-        return result;
+
+        // if (this.workspace?.name) {
+        //     capabilities.semanticTokensProvider.id = this.workspace.name;
+        // }
+
+        // if (this.supports.workspaceFolders) {
+        //     capabilities.workspace = { workspaceFolders: { supported: true } };
+        // }
+
+        // if (!!clientCapabilities.textDocument?.semanticTokens?.serverCancelSupport) {
+        //     let pattern = '**/*.{scm,scheme}';
+        //     console.debug(this.workspace?.name);
+        //     // if (this.workspace?.name) {
+        //     //     pattern = `**/${this.workspace.name}/${pattern}`;
+        //     // }
+        //     capabilities.semanticTokensProvider = {
+        //         documentSelector: [{ pattern: '**/*.{scm,scheme}' }],
+        //         full: true,
+        //         range: false,
+        //         legend: {
+        //             tokenModifiers: Token.MODIFIERS,
+        //             tokenTypes: Token.TYPES,
+        //         },
+        //     };
+        //     if (this.workspace?.name) {
+        //         capabilities.semanticTokensProvider.id = this.workspace.name;
+        //     }
+        // }
+
+        // if (!!parameters.capabilities.textDocument?.references) {
+        //     result.capabilities.referencesProvider = true;
+        // }
+
+        return { capabilities } as lsp.InitializeResult;
     }
 
     onInitialized(): void {
@@ -135,20 +177,28 @@ export class LSPServer {
                 this.workspace = folder;
                 this.loadNodeTypes();
             });
+        } else {
+            this.loadNodeTypes();
         }
     }
 
     async onCompletion(params: lsp.CompletionParams, cancelToken?: lsp.CancellationToken): Promise<lsp.CompletionList | null> {
+        const uri = params.textDocument.uri;
+
+        if (this.workspaceDoesNotContain(uri)) {
+            return null;
+        }
+
         let completions: lsp.CompletionItem[] = [];
         let isIncomplete: boolean = false;
 
-        let document = this.documents.get(params.textDocument.uri);
-        if (!document) {
+        // let document = ;
+        if (!this.documents.keys().includes(uri)) {
             completions.push(...this.completions.nodes, ...this.completions.builtins, ...this.completions.fieldNames);
             return lsp.CompletionList.create(completions, isIncomplete);
         }
 
-        let tree = this.treeCache.get(params.textDocument.uri);
+        let tree = this.treeCache.get(uri);
         if (!tree) {
             completions.push(
                 ...this.completions.nodes,
@@ -166,132 +216,9 @@ export class LSPServer {
 
         let context: TSQCompletionContext = TSQCompletionContext.fromTree(tree, params, this.tree_sitter);
         console.debug(`Completion Context: ${context.type}`);
-        let completionMapCache = context.type === 'capture' ? this.captureMapCache.get(document.uri) : undefined;
+        let completionMapCache = context.type === 'capture' ? this.captureMapCache.get(uri) : undefined;
         return this.completionEngine.run(context, this.typeEnvironment, { captures: completionMapCache });
         return completionHandler(context, this.typeEnvironment, this.completions, completionMapCache);
-
-        // switch (context.type) {
-        //     case 'none':
-        //         return null;
-        //     case 'unhandled':
-        //         completions.push(
-        //             ...this.completions.nodes,
-        //             ...this.completions.builtins,
-        //             ...this.completions.fieldNames,
-        //             ...this.completions.literals
-        //         );
-        //         break;
-        //     case 'empty-string':
-        //         {
-        //             let literalCompletions = this.completions.literals.map(item => {
-        //                 return {
-        //                     ...item,
-        //                     label: Literal.dequote(item.label) as Literal,
-        //                 } satisfies lsp.CompletionItem;
-        //             });
-        //             const parentType = this.typeEnvironment.getNamed(context.parentType);
-        //             const fieldName = context.fieldName;
-        //             const fieldInfo = !!parentType
-        //                 ? parentType.getField(fieldName)
-        //                 : this.typeEnvironment.getFieldComposite(fieldName);
-        //             if (!!fieldInfo) {
-        //                 literalCompletions = literalCompletions.filter(item => fieldInfo.literals.has(item.label));
-        //             } else if (!!parentType) {
-        //                 literalCompletions = literalCompletions.filter(item => parentType.literals.has(item.label));
-        //             }
-        //             completions.push(...literalCompletions);
-        //         }
-
-        //         break;
-        //     case 'capture':
-        //         const map: CaptureMap | undefined = this.captureMapCache.get(document.uri);
-        //         if (!map) {
-        //             return null;
-        //         }
-
-        //         let completionNames: string[] = map.keysArray();
-        //         if (isOnlyInstanceOfCaptureName(map, context.identifier)) {
-        //             completionNames = completionNames.filter(name => name !== context.identifier);
-        //         }
-        //         const captureCompletions: lsp.CompletionItem[] = completionNames.map(name => {
-        //             return { label: name };
-        //         });
-        //         completions.push(...captureCompletions);
-        //         break;
-        //     case 'node':
-        //         context.transform
-        //             ? completions.push(...this.completions.nodesTransformed)
-        //             : completions.push(...this.completions.nodes);
-        //         if (context.transform) {
-        //             completions.push(...this.completions.literals);
-        //         }
-        //         break;
-        //     case 'child':
-        //         let [nodeCompletions, fieldCompletions] = context.transform
-        //             ? [this.completions.nodesTransformed, this.completions.fieldNamesTransformed]
-        //             : [this.completions.nodes, this.completions.fieldNames];
-        //         let literalCompletions = this.completions.literals;
-
-        //         // console.debug(`Enclosing Type: ${completionContext.enclosingNodeType}`);
-        //         let enclosingType = this.typeEnvironment.getNamed(context.enclosingNodeType);
-        //         if (!!enclosingType) {
-        //             // enclosingType.fields && console.debug(`Fields: ${[...enclosingType.fields.keys()]}`);
-        //             fieldCompletions = fieldCompletions.filter(item => enclosingType.fields.has(item.label as FieldName));
-        //             nodeCompletions = nodeCompletions.filter(item => enclosingType.typeNames.has(item.label as TypeName));
-        //             literalCompletions = literalCompletions.filter(item =>
-        //                 enclosingType.literals.has(Literal.dequote(item.label) as Literal)
-        //             );
-        //         } else {
-        //             console.debug(`Failed to find type info for enclosing type '${context.enclosingNodeType}'`);
-        //         }
-
-        //         completions.push(...nodeCompletions, ...fieldCompletions, ...literalCompletions);
-        //         break;
-        //     case 'field-name': {
-        //         const fieldNames = this.typeEnvironment.getNamed(context.parentType)?.fields?.keysArray();
-        //         if (!fieldNames) {
-        //             completions.push(...this.completions.fieldNames);
-        //         } else {
-        //             const fieldCompletions = this.completions.fieldNames.filter(item =>
-        //                 fieldNames.includes(item.label as FieldName)
-        //             );
-        //             completions.push(...fieldCompletions);
-        //         }
-        //         break;
-        //     }
-        //     case 'field-value':
-        //         {
-        //             let fieldValues = context.transform ? this.completions.nodesTransformed : this.completions.nodes;
-        //             const field: CheckableSubnode | undefined = this.typeEnvironment
-        //                 .getNamed(context.parentType)
-        //                 ?.fields?.get(context.fieldName);
-        //             let literalValues = this.completions.literals;
-        //             if (!!field) {
-        //                 // console.debug('found field info');
-        //                 fieldValues = fieldValues.filter(item => field.hasTypeName(item.label));
-        //                 literalValues = literalValues.filter(item => field.hasLiteral(Literal.dequote(item.label)));
-        //             }
-        //             completions.push(...fieldValues, ...literalValues);
-        //         }
-        //         break;
-        //     case 'negated-field':
-        //         !!context.parentType && console.debug(`parentType: ${context.parentType}`);
-        //         const fieldNames: string[] | undefined = this.typeEnvironment.getNamed(context.parentType)?.fields?.keysArray();
-        //         const negatedCompletions: lsp.CompletionItem[] = !fieldNames
-        //             ? this.completions.fieldNames
-        //             : fieldNames.map(name => {
-        //                   return {
-        //                       label: name,
-        //                   } satisfies lsp.CompletionItem;
-        //               });
-        //         completions.push(...negatedCompletions);
-        //         break;
-        //     default:
-        //         break;
-        // }
-
-        // const list = lsp.CompletionList.create(completions, isIncomplete);
-        // return list;
     }
 
     async onExecuteCommand(
@@ -303,11 +230,11 @@ export class LSPServer {
         const args: string[] = parameters.arguments || [];
 
         switch (command) {
-            case 'vscode-tree-sitter-dev.printDocumentTree':
+            case 'vscode-tree-sitter-dev.print-document-tree':
                 const uri = args[0]!;
                 const text = this.documents.get(uri)?.getText();
                 if (!text) {
-                    console.debug(`Failed to retrieve text for document '${uri}'`);
+                    console.debug(`Failed to retrieve text for document '${uri.toString()}'`);
                 } else {
                     this.tree_sitter.scheduleParse(text, tree => {
                         if (!!tree?.rootNode) {
@@ -317,10 +244,17 @@ export class LSPServer {
                     });
                 }
                 break;
+            case 'vscode-tree-sitter-dev.reload-node-types':
+                this.loadNodeTypes();
+                break;
+            case 'vscode-tree-sitter-dev.refresh-semantic-tokens':
+                this.connection.languages.semanticTokens.refresh();
+                break;
             default:
-                console.debug(`Unrecognized command '${command}'`);
+                console.debug(`${this.workspace?.name ?? 'lsp'}: Unrecognized command '${command}'`);
+                return;
         }
-        console.debug(`ExecuteCommand requested '${command}'`);
+        console.debug(`${this.workspace?.name ?? ''} executed command '${command}'`);
         return;
     }
 
@@ -338,11 +272,16 @@ export class LSPServer {
         if (!(hasAdded || hasRemoved)) {
             this.debug('No workspaces added or removed ...');
         }
+        this.loadNodeTypes();
     }
 
     async onDidChangeContent(change: lsp.TextDocumentChangeEvent<TextDocument>) {
         const document = change.document;
         const uri = document.uri;
+        if (this.workspaceDoesNotContain(uri)) {
+            return;
+        }
+        console.debug(`${this.workspace?.name}: change for "${uri}"`);
         // this.debug(`Document changed: ${uri}`);
         let text: string;
         try {
@@ -380,11 +319,44 @@ export class LSPServer {
         });
     }
 
+    async onDocumentFormatting(
+        parameters: lsp.DocumentFormattingParams,
+        cancel: lsp.CancellationToken
+    ): Promise<lsp.TextEdit[] | null | lsp.ResponseError> {
+        let uri: string = parameters.textDocument.uri;
+        if (this.workspaceDoesNotContain(uri)) {
+            // this.debug('not my workspace');
+            return new lsp.ResponseError(lsp.LSPErrorCodes.ServerCancelled, 'not my document man');
+        }
+        this.debug(`formatting "${uri}"`);
+
+        const rootNode: TSNode | undefined = this.treeCache.get(uri)?.rootNode;
+        if (!rootNode) {
+            this.debug('no Tree');
+            return null;
+        }
+        let matches: wts.QueryMatch[] = this.tree_sitter.queries.FORMATTING.matches(rootNode);
+        let edits: lsp.TextEdit[] = formatMatches(matches, FormattingStyle.fromPartial({ options: parameters.options }));
+
+        // let edits: lsp.TextEdit[] = formattingEdits(rootNode, FormattingStyle(parameters.options));
+
+        if (cancel.isCancellationRequested) {
+            this.debug('Client requested cancellation of `onDocumentFormatting`');
+            return new lsp.ResponseError(lsp.LSPErrorCodes.RequestCancelled, 'Client cancellation acknowledged');
+        }
+
+        this.debug(`${edits.length} edits returned`);
+        return edits;
+    }
+
     async onDocumentSymbol(
-        params: lsp.DocumentSymbolParams,
+        parameters: lsp.DocumentSymbolParams,
         cancellationToken: lsp.CancellationToken
     ): Promise<lsp.DocumentSymbol[] | undefined> {
-        let uri: string = params.textDocument.uri;
+        let uri: string = parameters.textDocument.uri;
+        if (!!this.workspace && !uri.startsWith(this.workspace.uri)) {
+            return;
+        }
         let node = this.treeCache.get(uri)?.rootNode;
         if (!node || this.typeEnvironment.isEmpty) {
             return [];
@@ -405,12 +377,17 @@ export class LSPServer {
         if (!cancellationToken.isCancellationRequested) {
             return symbols;
         }
+        return;
     }
 
     async onHover(parameters: lsp.TextDocumentPositionParams, token?: lsp.CancellationToken): Promise<lsp.Hover | undefined> {
+        const uri = parameters.textDocument.uri;
+        if (this.workspaceDoesNotContain(uri)) {
+            return;
+        }
         let hover: lsp.Hover | undefined = undefined;
         try {
-            let tree = this.treeCache.get(parameters.textDocument.uri);
+            let tree = this.treeCache.get(uri);
             if (tree === undefined || tree === null) {
                 return;
             }
@@ -429,27 +406,216 @@ export class LSPServer {
         if (!token || !token.isCancellationRequested) {
             return hover;
         }
+        return;
     }
 
-    async onSemanticTokensFull(params: lsp.SemanticTokensParams, token?: lsp.CancellationToken): Promise<lsp.SemanticTokens> {
-        let tokens: lsp.SemanticTokens = { data: [] };
-        const tree = this.treeCache.get(params.textDocument.uri);
-        if (!tree) {
-            return tokens;
+    async onReferences(
+        parameters: lsp.ReferenceParams,
+        token: lsp.CancellationToken
+    ): Promise<lsp.Location[] | null | undefined> {
+        const uri = parameters.textDocument.uri;
+        if (this.workspaceDoesNotContain(uri)) {
+            this.debug(`not my document: "${uri}"`);
+            return;
         }
-        let captures = this.tree_sitter.queries.HIGHLIGHTING.matches(tree.rootNode)
+
+        const captureMapCache = this.captureMapCache.get(uri);
+
+        if (!captureMapCache) {
+            this.debug(`no captureMap for "${uri}"`);
+            return;
+        }
+
+        const tree = this.treeCache.get(uri);
+        if (!tree) {
+            this.debug(`no Tree for "${uri}"`);
+
+            return;
+        }
+
+        const nodes = this.tree_sitter.nodes_at_position(tree, parameters.position);
+        const inner = nodes.shift();
+        if (!inner || !isType_(inner, 'identifier')) {
+            this.debug(`not an identifier`);
+            return;
+        }
+
+        const outer = nodes.shift();
+        if (!outer || !isType_(outer, 'capture')) {
+            this.debug(`not a capture`);
+            return;
+        }
+
+        const name = inner.text;
+
+        const locations = (captureMapCache.get(name) ?? []).map(node => {
+            return { uri, range: LSPRange.fromNode(node) };
+        });
+
+        if (token.isCancellationRequested) {
+            this.debug(`Cancellation requested`);
+            return null;
+        }
+
+        this.debug(`returned ${locations.length} reference locations`);
+
+        return locations;
+    }
+
+    async onPrepareRename(parameters: lsp.PrepareRenameParams, cancel: lsp.CancellationToken): Promise<PrepareRenameResult> {
+        const uri = parameters.textDocument.uri;
+        if (this.workspaceDoesNotContain(uri)) {
+            this.debug(`not my document: "${uri}"`);
+            return null;
+        }
+
+        const captureMapCache: Capture.Map | undefined = this.captureMapCache.get(uri);
+
+        if (!captureMapCache) {
+            this.debug(`no captureMap for "${uri}"`);
+            return null;
+        }
+
+        const tree = this.treeCache.get(uri);
+        if (!tree) {
+            this.debug(`no Tree for "${uri}"`);
+
+            return null;
+        }
+
+        const nodes = this.tree_sitter.nodes_at_position(tree, parameters.position);
+        const identifier = nodes.shift();
+        if (!identifier || !isType_(identifier, 'identifier')) {
+            this.debug(`not an identifier`);
+            return null;
+        }
+
+        const capture = nodes.shift();
+        if (!capture || !isType_(capture, 'capture')) {
+            this.debug(`not a capture`);
+            return null;
+        }
+
+        return {
+            range: LSPRange.fromNode(identifier),
+            placeholder: identifier.text,
+        };
+    }
+
+    async onRenameRequest(
+        parameters: lsp.RenameParams,
+        cancel: lsp.CancellationToken
+    ): Promise<lsp.WorkspaceEdit | lsp.ResponseError | null> {
+        const uri = parameters.textDocument.uri;
+        if (this.workspaceDoesNotContain(uri)) {
+            this.debug(`not my document: "${uri}"`);
+            return null;
+        }
+
+        const pattern = /[a-zA-Z0-9\-_\$][a-zA-Z0-9.\-_\$]*/;
+        if (!pattern.test(parameters.newName)) {
+            this.debug('Invalid identifier pattern');
+            return new lsp.ResponseError(lsp.ErrorCodes.InvalidRequest, 'Not a valid identifier');
+        }
+
+        const captureMapCache: Capture.Map | undefined = this.captureMapCache.get(uri);
+
+        if (!captureMapCache) {
+            this.debug(`no captureMap for "${uri}"`);
+            return null;
+        }
+
+        const tree = this.treeCache.get(uri);
+        if (!tree) {
+            this.debug(`no Tree for "${uri}"`);
+
+            return null;
+        }
+
+        const nodes = this.tree_sitter.nodes_at_position(tree, parameters.position);
+        const identifier = nodes.shift();
+        if (!identifier || !isType_(identifier, 'identifier')) {
+            this.debug(`not an identifier`);
+            return null;
+        }
+
+        const capture = nodes.shift();
+        if (!capture || !isType_(capture, 'capture')) {
+            this.debug(`not a capture`);
+            return null;
+        }
+
+        const oldName = identifier.text;
+        let edits: lsp.TextEdit[] = (captureMapCache.get(oldName) ?? []).map(node => {
+            return {
+                range: LSPRange.fromNode(node),
+                newText: parameters.newName,
+            };
+        });
+
+        return {
+            changes: {
+                [uri]: edits,
+            },
+        };
+    }
+
+    async onSemanticTokensFull(
+        params: lsp.SemanticTokensParams,
+        token?: lsp.CancellationToken
+        // ): Promise<lsp.SemanticTokens | void> {
+    ) {
+        const uri = params.textDocument.uri;
+
+        if (this.workspaceDoesNotContain(uri)) {
+            // console.debug(`'${this.workspace?.name}': not my workspace: ${uri}`);
+
+            return new lsp.ResponseError(lsp.LSPErrorCodes.ServerCancelled, 'not my document man');
+        }
+        // this.debug(`Processing semantic tokens for "${uri}"`);
+
+        let tokens: lsp.SemanticTokens | lsp.SemanticTokensPartialResult = { data: [] };
+        const tree = this.treeCache.get(uri);
+        if (!tree) {
+            // let document = this.documents.get()
+            console.debug(`Document in '${this.workspace?.name}' workspace but no tree found: ${uri}`);
+            return new lsp.ResponseError(lsp.LSPErrorCodes.ServerCancelled, 'not my document man');
+        }
+        this.connection.languages.semanticTokens;
+        let captures = this.tree_sitter.queries.HIGHLIGHTING.matches(tree.rootNode, { timeoutMicros: 1000 })
             .flatMap(match => match.captures)
             .sort(Captures.sort);
+        // this.debug(`${captures.length} captures returned`);
+        // console.debug(captures.map(capture => [capture.node.startIndex, capture.node.endIndex]));
+        // if (captures.length === 0) {
+        //     this.debug(`No captures returned for "${uri}"`);
+        // }
+        // console.debug(Token.MAP.entries());
+
         let absolutes: Token.Data.Absolute[] = captures
             .filter(capture => Token.MAP.has(capture.name))
             .map(capture => {
-                let [type, modifier] = Token.MAP.get(capture.name)!;
-                return Token.Data.Absolute.fromNode(capture.node, type, modifier);
-            });
+                let entry = Token.MAP.get(capture.name);
+                if (!!entry) {
+                    let [type, modifier] = entry;
+                    // console.debug([capture.node.startIndex, capture.node.endIndex]);
+                    return Token.Data.Absolute.fromNode(capture.node, type, modifier);
+                }
+                return;
+            })
+            .filter(isNotNullish);
+        // this.debug(`${absolutes.length} absolutes`);
 
-        if (!token || !token.isCancellationRequested) {
-            tokens.data = Token.Data.Absolute.encode(absolutes);
+        if (token?.isCancellationRequested) {
+            return new lsp.ResponseError(lsp.LSPErrorCodes.RequestCancelled, 'Client cancellation acknowledged');
         }
+        tokens.data = Token.Data.Absolute.encode(absolutes);
+        // console.debug(tokens.data);
+
+        if (tokens.data.length === 0) {
+            console.debug(`'${this.workspace?.name}': returned no semantic tokens for "${uri}"`);
+        }
+
         return tokens;
     }
     //#endregion Handlers
@@ -457,9 +623,9 @@ export class LSPServer {
     //#region Initialization
     async initializeParser() {
         this.tree_sitter = new TreeSitter();
-        console.debug('Initializing Parser');
+        // console.debug('Initializing Parser');
         const wasmPath: string = path.join(this.resourcesPath, 'tree-sitter-query.wasm');
-        console.debug(`Loading Lanugage from '${wasmPath}'`);
+        // console.debug(`Loading Lanugage from '${wasmPath}'`);
         wts.Parser.init().then(_ => {
             readFile(wasmPath, (error, data) => {
                 if (!!error) {
@@ -468,6 +634,7 @@ export class LSPServer {
                 wts.Language.load(data)
                     .then(language => {
                         this.tree_sitter.prime(language, this.resourcesPath);
+                        console.debug('Parser initialized');
                     })
                     .catch(reason => {
                         console.error(reason);
@@ -486,16 +653,16 @@ export class LSPServer {
             workspacePath = workspacePath.split('://', 2)[1];
         }
         if (workspacePath === undefined) {
+            this.debug('workspace path is undefined');
             return;
         }
         let nodeTypesPath = path.join(workspacePath, 'src', 'node-types.json');
         // this.debug(`Reading "node-types.json" from "${nodeTypesPath}"`);
         readFile(nodeTypesPath, 'utf-8', (error_, data) => {
             if (error_) {
-                // console.error(`Failed to load file @ "${nodeTypesPath}"`);
+                console.error(`Failed to load node types from "${nodeTypesPath}"`);
                 return;
             }
-            // this.debug(`Succesffully read "node-types.json" @ "${nodeTypesPath}"`);
 
             this.nodeTypes = NodeTypes.fromString(data);
             let typeEnvironment = TypeEnvironment.fromNodeTypes(this.nodeTypes);
@@ -545,6 +712,7 @@ export class LSPServer {
                 };
             });
             this.completionEngine.cache.literals = this.completions.literals;
+            this.debug(`Succesfully loaded node types from "${nodeTypesPath}"`);
 
             for (let uri of this.documents.keys()) {
                 this.runDiagnostics(uri);
@@ -555,6 +723,9 @@ export class LSPServer {
 
     //#region Diagnostics
     clearDiagnostics(uri: string) {
+        if (!!this.workspace && !uri.startsWith(this.workspace.uri)) {
+            return;
+        }
         // reschedule, just in case sourceFile is current priority file
         // this.scheduleDiagnostics();
 
@@ -565,6 +736,9 @@ export class LSPServer {
     }
 
     runDiagnostics(uri: string) {
+        if (!!this.workspace && !uri.startsWith(this.workspace.uri)) {
+            return;
+        }
         let node = this.treeCache.get(uri)?.rootNode;
         if (!node || !this.tree_sitter.isReady || this.typeEnvironment.isEmpty) {
             return;
@@ -574,7 +748,32 @@ export class LSPServer {
         diagnostics.push(...lintAll(node, this.tree_sitter, this.typeEnvironment));
         this.connection.sendDiagnostics({ uri, diagnostics });
     }
+
+    workspaceDoesNotContain(document: lsp.TextDocumentIdentifier | TextDocument): boolean;
+    workspaceDoesNotContain(uri: string): boolean;
+    workspaceDoesNotContain(arg: lsp.TextDocumentIdentifier | TextDocument | string): boolean;
+    workspaceDoesNotContain(arg: lsp.TextDocumentIdentifier | TextDocument | string): boolean {
+        !this.workspace && console.warn(`Method 'isNotInWorkspace' is being called but 'this.workspace' is still undefined`);
+        return !!this.workspace && !uriOf(arg).startsWith(this.workspace.uri);
+    }
+
     //#endregion Diagnostics
+}
+
+type _PrepareRenameResult = ReturnType<Parameters<lsp.Connection['onPrepareRename']>[0]>;
+type PrepareRenameResult = ResultOfHandler<Parameters<lsp.Connection['onPrepareRename']>[0]>;
+// type ResultOfHandler<H> = H extends lsp.ServerRequestHandler<any, infer R, any, infer E> ? R | E : never;
+type ResultOfHandler<H> = H extends lsp.RequestHandler<any, infer R, any> ? R : never;
+// type ResultOfHandlerRegistrar<R> = R extends ResultOfHandler<infer H> ? ReturnType<Parameters<R>[0]> : never;
+
+function uriOf(document: lsp.TextDocumentIdentifier | TextDocument): string;
+function uriOf(uri: string): string;
+function uriOf(arg: lsp.TextDocumentIdentifier | TextDocument | string): string;
+function uriOf(arg: lsp.TextDocumentIdentifier | TextDocument | string): string {
+    if (typeof arg === 'string') {
+        return arg;
+    }
+    return arg.uri;
 }
 
 function hoverDocs(environment: TypeEnvironment, nodes: TSNode[]) {
@@ -589,7 +788,7 @@ function hoverDocs(environment: TypeEnvironment, nodes: TSNode[]) {
     chain += node.type === 'program' ? '\n\n' : `\n\n"${node.text}"`;
     contents = chain;
 
-    if (!isType(node, 'identifier', '_')) {
+    if (!isType_(node, 'identifier', '_')) {
         return contents;
     }
     const outer = closestAncestorOfType(node, 'named_node', 'field_definition', 'negated_field', 'program');
@@ -597,7 +796,7 @@ function hoverDocs(environment: TypeEnvironment, nodes: TSNode[]) {
     if (!outer) {
         return contents;
     }
-    const isWildcard = isType(node, '_');
+    const isWildcard = isType_(node, '_');
     let documentation: lsp.MarkupContent | undefined;
     switch (outer.type) {
         case 'named_node': {

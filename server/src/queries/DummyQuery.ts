@@ -3,7 +3,16 @@ import { CaptureQuantifier, Language, Query, QueryPredicate, QueryProperties } f
 
 export type QueryLike = Query | UninitializedQuery;
 
-type Returns<T> = (..._: any[]) => T;
+export type Returns<T> = (..._: any[]) => T | ((_: any) => T) | (() => T);
+
+export namespace Return {
+    export const Void: Returns<void> = (..._: any[]) => {};
+    export const Null: Returns<null> = (..._: any[]) => null;
+    export const Array: Returns<[]> = (..._: any[]) => [];
+    export const True: Returns<true> = (..._: any[]) => true;
+    export const False: Returns<false> = (..._: any[]) => false;
+    export const Zero: Returns<0> = (..._: any[]) => 0;
+}
 
 const RETURN_LIST: Returns<[]> = (..._: any[]) => [];
 const VOID: Returns<void> = (..._: any[]) => {};
@@ -43,21 +52,21 @@ export class UninitializedQuery {
 
     delete(): void {}
 
-    matches: Query['matches'] = RETURN_LIST;
-    captures: Query['captures'] = RETURN_LIST;
-    predicatesForPattern: Query['predicatesForPattern'] = RETURN_LIST;
+    matches = Return.Array as Query['matches'];
+    captures = RETURN_LIST as Query['captures'];
+    predicatesForPattern = RETURN_LIST as Query['predicatesForPattern'];
 
-    disableCapture: Query['disableCapture'] = VOID;
-    disablePattern: Query['disablePattern'] = VOID;
+    disableCapture = VOID as Query['disableCapture'];
+    disablePattern = VOID as Query['disablePattern'];
 
-    didExceedMatchLimit: Query['didExceedMatchLimit'] = RETURN_FALSE;
+    didExceedMatchLimit = RETURN_FALSE as Query['didExceedMatchLimit'];
 
-    startIndexForPattern: Query['startIndexForPattern'] = RETURN_ZERO;
-    endIndexForPattern: Query['endIndexForPattern'] = RETURN_ZERO;
-    patternCount: Query['patternCount'] = RETURN_ZERO;
-    captureIndexForName: Query['captureIndexForName'] = RETURN_ZERO;
+    startIndexForPattern = RETURN_ZERO as Query['startIndexForPattern'];
+    endIndexForPattern = RETURN_ZERO as Query['endIndexForPattern'];
+    patternCount = RETURN_ZERO as Query['patternCount'];
+    captureIndexForName = RETURN_ZERO as Query['captureIndexForName'];
 
-    isPatternRooted: Query['isPatternRooted'] = RETURN_FALSE;
-    isPatternNonLocal: Query['isPatternNonLocal'] = RETURN_FALSE;
-    isPatternGuaranteedAtStep: Query['isPatternGuaranteedAtStep'] = RETURN_FALSE;
+    isPatternRooted = RETURN_FALSE as Query['isPatternRooted'];
+    isPatternNonLocal = RETURN_FALSE as Query['isPatternNonLocal'];
+    isPatternGuaranteedAtStep = RETURN_FALSE as Query['isPatternGuaranteedAtStep'];
 }

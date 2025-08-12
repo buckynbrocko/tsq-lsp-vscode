@@ -1,12 +1,12 @@
 import { readFileSync } from 'fs';
 import * as path from 'path';
 import * as lsp from 'vscode-languageserver';
-import { Language, Parser, Query, QueryCapture, QueryOptions, Tree } from 'web-tree-sitter';
+import { Language, Parser, Query, QueryCapture, QueryMatch, QueryOptions, Tree } from 'web-tree-sitter';
 import { Dict } from './Dict';
-import { TSNode } from './junk_drawer';
 import { isNotNullish } from './predicates';
 import { QueryLike, UninitializedQuery } from './queries/DummyQuery';
 import { Queries, queries } from './queries/queries';
+import { TSNode } from './reexports';
 
 export type ParseCallback = (result?: Tree | null) => unknown;
 export type ParseTask = [lsp.DocumentUri, ParseCallback];
@@ -29,7 +29,7 @@ export class TreeSitter {
 
         for (let entry of this._queries()) {
             let [name, query] = entry;
-            if (name === 'LINTING' || name === 'HIGHLIGHTING') {
+            if (UninitializedQuery.is(query) && query.source === '') {
                 const path_ = path.join(resourcesPath, 'queries', name.toLowerCase() + '.scm');
                 this.queries[name] = query.initialize(language, path_);
             } else {
@@ -141,6 +141,7 @@ export class TreeSitter {
         } catch (error) {
             console.error(error);
         }
+        return;
     }
 
     /**
@@ -193,8 +194,23 @@ export namespace Capture {
     type CaptureMap = Dict<CaptureName, TSNode[]>;
     export type Map = CaptureMap;
 
-    export function withName(captures: QueryCapture[], name: string): QueryCapture | undefined {
-        return Captures.withName(captures, name).at(0);
+    export function name(capture: QueryCapture): string {
+        return capture.name;
+    }
+
+    export function withName(match: QueryMatch, name: string): QueryCapture | undefined;
+    export function withName(captures: QueryCapture[], name: string): QueryCapture | undefined;
+    export function withName(arg: QueryMatch | QueryCapture[], name: string): QueryCapture | undefined;
+    export function withName(arg: QueryMatch | QueryCapture[], name: string): QueryCapture | undefined {
+        return Captures.withName(arg, name).at(0);
+    }
+
+    export function hasName(name: string): (capture: QueryCapture) => boolean {
+        return (capture: QueryCapture): boolean => capture.name === name;
+    }
+
+    export function node(capture: QueryCapture): TSNode {
+        return capture.node;
     }
 
     export namespace Map {
@@ -247,7 +263,11 @@ export namespace Captures {
             : a.node.startIndex - b.node.startIndex;
     }
 
-    export function withName(captures: QueryCapture[], name: string): QueryCapture[] {
+    export function withName(captures: QueryCapture[], name: string): QueryCapture[];
+    export function withName(match: QueryMatch, name: string): QueryCapture[];
+    export function withName(arg: QueryMatch | QueryCapture[], name: string): QueryCapture[];
+    export function withName(arg: QueryMatch | QueryCapture[], name: string): QueryCapture[] {
+        const captures = Array.isArray(arg) ? arg : arg.captures;
         return captures.filter(capture => capture.name === name);
     }
 

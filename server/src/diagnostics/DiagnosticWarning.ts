@@ -1,5 +1,6 @@
 import { Diagnostic, DiagnosticSeverity } from 'vscode-languageserver';
-import { LSPRange, TSNode } from '../junk_drawer';
+import { TSNode } from '../reexports';
+import { LSPRange } from '../reexports/LSPRange';
 
 export function DiagnosticWarning(node: TSNode, message: string): Diagnostic {
     return {

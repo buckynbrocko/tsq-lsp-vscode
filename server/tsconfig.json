@@ -10,6 +10,7 @@
         "rootDir": ".",
         "noUncheckedIndexedAccess": true,
         "esModuleInterop": true,
+        "noImplicitReturns": true
         // "noErrorTruncation": true
         // "isolatedModules": true
 

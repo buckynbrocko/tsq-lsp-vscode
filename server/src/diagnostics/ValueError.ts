@@ -1,6 +1,7 @@
 import * as lsp from 'vscode-languageserver';
-import { LSPRange, TSNode } from '../junk_drawer';
+import { TSNode } from '../reexports';
 import { isNotNullish } from '../predicates';
+import { LSPRange } from '../reexports/LSPRange';
 import { FieldName, TypeName } from '../typeChecking';
 import { DiagnosticError } from './DiagnosticError';
 
@@ -64,7 +65,7 @@ export namespace ValueError {
             return;
         }
         const text = `(${name})`;
-        const range = LSPRange.fromNodePair(open, close);
+        const range = LSPRange.aroundNodes(open, close);
         return [text, range];
     }
 

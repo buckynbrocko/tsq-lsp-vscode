@@ -3,7 +3,8 @@ import { LintResult } from '.';
 import { SyntaxError } from '../diagnostics';
 import { DiagnosticError } from '../diagnostics/DiagnosticError';
 import { DiagnosticWarning } from '../diagnostics/DiagnosticWarning';
-import { LSPRange, TSNode } from '../junk_drawer';
+import { TSNode } from '../reexports';
+import { LSPRange } from '../reexports/LSPRange';
 import { Capture } from '../TreeSitter';
 import { FieldName } from '../typeChecking';
 import { SingularMatchLint } from './SingularMatchLint';
@@ -57,6 +58,7 @@ export class HangingCapture extends SingularMatchLint {
         if (!!node) {
             return SyntaxError(node, 'Missing capture name');
         }
+        return;
     }
 }
 export class NonDescriptErrorNode extends SingularMatchLint {
@@ -66,6 +68,7 @@ export class NonDescriptErrorNode extends SingularMatchLint {
         if (!!node) {
             return SyntaxError(node);
         }
+        return;
     }
 }
 export class NonDescriptMissingNode extends SingularMatchLint {
@@ -76,6 +79,7 @@ export class NonDescriptMissingNode extends SingularMatchLint {
             const nodeType: string = node.childForFieldName('name')?.text || 'unspecified';
             return SyntaxError(node, `Missing ${nodeType} node`);
         }
+        return;
     }
 }
 
@@ -89,7 +93,7 @@ export class EmptyContainer extends SingularMatchLint {
         if (!open || !close || (kind !== 'list' && kind !== 'grouping')) {
             return;
         }
-        const range = LSPRange.fromNodePair(open, close);
+        const range = LSPRange.aroundNodes(open, close);
         return DiagnosticError(range, `Empty ${kind}`);
     }
 }
@@ -119,5 +123,6 @@ export class PredicateName extends SingularMatchLint {
         if (!!name && !this.class.KNOWN_PREDICATES.includes(name)) {
             return DiagnosticWarning(identifier!, `Unrecognized predicate '${name}'`);
         }
+        return;
     }
 }

@@ -1,5 +1,5 @@
 import { Diagnostic } from 'vscode-languageserver';
-import { TSNode } from '../junk_drawer';
+import { TSNode } from '../reexports';
 import { DiagnosticWarning } from './DiagnosticWarning';
 
 export namespace Warning {

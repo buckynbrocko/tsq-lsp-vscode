@@ -20,5 +20,7 @@
     "jest.runMode": {
         "type": "watch",
         "testFileOnly": false
-    }
+    },
+    "oneDarkPro.markdownStyle": false,
+    "markdown.styles": [".meta/markdown.css"]
 }

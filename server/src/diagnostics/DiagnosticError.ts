@@ -1,6 +1,7 @@
 import * as lsp from 'vscode-languageserver';
 import { Diagnostic } from 'vscode-languageserver';
-import { LSPRange, TSNode } from '../junk_drawer';
+import { TSNode } from '../reexports';
+import { LSPRange } from '../reexports/LSPRange';
 export * from './SyntaxError';
 export * from './ValueError';
 

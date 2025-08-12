@@ -4,6 +4,15 @@
   "description": "An extension to aid in development of tree-sitter grammars",
   "version": "0.0.1",
   "main": "./client/out/extension",
+  "dependencies": {
+    "@types/node": "^22.14.1",
+    "typescript": "^5.8.3"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "jest": "^30.0.3",
+    "ts-jest": "^29.4.0"
+  },
   "scripts": {
     "compile": "tsc -b",
     "watch": "tsc -b -w",
@@ -51,18 +60,17 @@
     ],
     "commands": [
       {
-        "command": "vscode-tree-sitter-dev.printDocumentTree",
+        "command": "vscode-tree-sitter-dev.print-document-tree",
         "title": "Print Document Tree"
+      },
+      {
+        "command": "vscode-tree-sitter-dev.refresh-semantic-tokens",
+        "title": "Refresh Semantic Tokens"
+      },
+      {
+        "command": "vscode-tree-sitter-dev.reload-node-types",
+        "title": "Reload Node Types"
       }
     ]
-  },
-  "dependencies": {
-    "@types/node": "^22.14.1",
-    "typescript": "^5.8.3"
-  },
-  "devDependencies": {
-    "@types/jest": "^30.0.0",
-    "jest": "^30.0.3",
-    "ts-jest": "^29.4.0"
   }
 }

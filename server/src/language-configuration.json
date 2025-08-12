@@ -3,7 +3,7 @@
         // symbol used for single line comment. Remove this entry if your language does not support line comments
         "lineComment": ";"
     },
-    "wordPattern": "#?[a-zA-Z_]+([-]?[a-zA-Z0-9_]+)*[!?]?",
+    "wordPattern": "#?[a-zA-Z_]+([-\\.]?[a-zA-Z0-9_]+)*[!?]?",
     "folding": {},
     // "colorizedBracketPairs": [
     //     ["(", ")"],

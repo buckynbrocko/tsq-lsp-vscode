@@ -30,24 +30,26 @@
 
 (named_node
     name: [(identifier) "_"] @parent.name
-    [
-        (named_node)
-        (anonymous_node)
-        (negated_field)
-        (field_definition)
-        (list)
-        (grouping)
-        ]* @subnode
-    (negated_field (identifier) @negated-field.name)*
-    (field_definition
-        name: (identifier) @field.name
-        name: ":"
-        .
+    ; ["." (comment)]*
+    (
         [
             (named_node)
             (anonymous_node)
+            (negated_field)
+            (field_definition)
             (list)
             (grouping)
-            ] @field.value
+            ]* @subnode
+        ["." (comment)]*
         )*
-    ) @lint.named-node @named-node
+
+    ) @named-node
+
+(program [(anonymous_node (string)) (field_definition) (negated_field)] @orphan)
+
+(negated_field
+    "!" @bang
+    .
+    (comment)+
+    .
+    (identifier) @name) @split-negated-field

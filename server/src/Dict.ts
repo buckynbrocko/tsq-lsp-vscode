@@ -20,6 +20,10 @@ export class Dict<K extends Index, V> extends Map<K, V> {
         return new Dict(Array.from(this.entries()).filter(predicate, thisArg));
     }
 
+    sortedByKey(comparator: (a: K, b: K) => number, thisArg?: any): [K, V][] {
+        return this.entriesArray().sort(([a, _], [b, __]) => comparator(a, b));
+    }
+
     forEachValue(callback: (value: V) => void): void {
         for (let value of this.values()) {
             callback(value);
@@ -56,6 +60,10 @@ export class Dict<K extends Index, V> extends Map<K, V> {
 
     valuesArray(): V[] {
         return Array.from(this.values());
+    }
+
+    entriesArray(): [K, V][] {
+        return [...this.entries()];
     }
 
     static fromRecord<V>(record: Mapping<V>): Dict<string, V> {
