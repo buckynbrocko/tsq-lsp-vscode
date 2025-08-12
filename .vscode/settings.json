@@ -19,7 +19,7 @@
     // "jest.rootPath": "server"
     "jest.runMode": {
         "type": "watch",
-        "testFileOnly": false
+        // "testFileOnly": false
     },
     "oneDarkPro.markdownStyle": false,
     "markdown.styles": [".meta/markdown.css"]

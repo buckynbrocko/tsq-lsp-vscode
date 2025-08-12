@@ -2,27 +2,26 @@ import * as lsp from 'vscode-languageserver';
 import { TSNode, WTSRange } from '../reexports';
 import { LSPRange } from '../reexports/LSPRange';
 import { WTSPoint } from '../reexports/Point';
-import { LSPTextEdit } from '../TextEditSimulator';
 
-export const NO_EDIT = '' as const;
-export type NoEdit = typeof NO_EDIT;
-
-// export type Edit = lsp.TextEdit | NoEdit;
-export type Edit = MyEdit | NoEdit;
 export type Edits = Edit[];
 
 export type MaybeEdit = Edit | undefined;
 export type MaybeEdits = (Edit | undefined)[];
 
-export interface MyEdit {
+export interface Edit {
     readonly type: string;
+    isRedundant: boolean;
     toTextEdit(): lsp.TextEdit;
     present(): string;
 }
 
-export namespace MyEdit {
-    export function is(object: any): object is MyEdit {
+export namespace Edit {
+    export function is(object: any): object is Edit {
         return object instanceof Insertion || object instanceof Replacement || object instanceof Deletion;
+    }
+
+    export function isRedundant(edit: Edit): boolean {
+        return edit.isRedundant;
     }
 }
 
@@ -48,16 +47,9 @@ export function newEdit(
     return WTSPoint.is(arg1) ? new Insertion(arg0, arg1) : new Replacement(arg0, arg1);
 }
 
-// newEdit(WTSRange.mock(), WTSRange.mock());
-
-
-// export class NoEdit implements MyEdit {
-//     readonly type: 'NoEdit' = 'NoEdit';
-// }
-
-export class Insertion implements MyEdit {
+export class Insertion implements Edit {
     readonly type: 'Insertion' = 'Insertion';
-    constructor(public content: string, public point: WTSPoint) {}
+    constructor(public content: string, public point: WTSPoint, public isRedundant: boolean = false) {}
 
     toTextEdit(): lsp.TextEdit {
         return {
@@ -72,9 +64,9 @@ export class Insertion implements MyEdit {
     }
 }
 
-export class Deletion implements MyEdit {
+export class Deletion implements Edit {
     readonly type: 'Deletion' = 'Deletion';
-    constructor(public range: WTSRange) {}
+    constructor(public range: WTSRange, public isRedundant: boolean = false) {}
 
     toTextEdit(): lsp.TextEdit {
         return {
@@ -87,9 +79,9 @@ export class Deletion implements MyEdit {
     }
 }
 
-export class Replacement implements MyEdit {
+export class Replacement implements Edit {
     readonly type: 'Replacement' = 'Replacement';
-    constructor(public content: string, public range: WTSRange) {}
+    constructor(public content: string, public range: WTSRange, public isRedundant: boolean = false) {}
 
     toTextEdit(): lsp.TextEdit {
         return {
@@ -100,8 +92,6 @@ export class Replacement implements MyEdit {
     present(): string {
         return `Replacement ${this.content.length}ch @ ${WTSRange.present(this.range)}}`;
     }
-
-    // betweenNodes(former: TSNode, latter: TSNode, content: string) {}
 }
 
 export namespace format {
@@ -112,16 +102,12 @@ export namespace format {
         if (spaces === 0) {
             return linesBetween.pair(former, latter, newlines);
         }
+        const newText: string = '\n'.repeat(newlines) + ' '.repeat(spaces);
+        const range = WTSRange.betweenNodes(former, latter);
         const rowDifference: number = TSNode.Pair.rowDifferenceBetween(former, latter);
         const indexDifference: number = TSNode.Pair.indexDifferenceBetween(former, latter);
-        if (rowDifference === newlines && indexDifference === newlines + spaces) {
-            return NO_EDIT;
-        }
-        // const range = LSPRange.betweenNodes(former, latter);
-        const range = WTSRange.betweenNodes(former, latter);
-        const newText: string = '\n'.repeat(newlines) + ' '.repeat(spaces);
-        return new Replacement(newText, range);
-        // return lsp.TextEdit.replace(range, newText);
+        const isRedundant = rowDifference === newlines && indexDifference === newlines + spaces;
+        return new Replacement(newText, range, isRedundant);
     }
 
     export function previous(node: TSNode, newlines: number, spaces: number): MaybeEdit {
@@ -134,16 +120,14 @@ export namespace format {
 }
 
 export namespace remove {
-    export function before(node: TSNode): Edit | NoEdit {
-        // return node.startIndex === 0 ? NO_EDIT : lsp.TextEdit.del(LSPRange.startOfFileToNode(node));
-        return node.startIndex === 0 ? NO_EDIT : new Deletion(WTSRange.startOfFileToNode(node));
+    export function before(node: TSNode): Edit {
+        const isRedundant = node.startIndex === 0;
+        return new Deletion(WTSRange.startOfFileToNode(node), isRedundant);
     }
 
-    export function after(node: TSNode, programNode: TSNode): Edit | NoEdit {
-        return node.endIndex === programNode.endIndex && programNode.text.endsWith('\n')
-            ? NO_EDIT
-            // : lsp.TextEdit.replace(WTSRange.nodeToEndOfFile(node, programNode), '\n');
-            : new Replacement('\n', WTSRange.nodeToEndOfFile(node, programNode));
+    export function after(node: TSNode, programNode: TSNode): Edit {
+        const isRedundant = node.endIndex === programNode.endIndex && programNode.text.endsWith('\n');
+        return new Replacement('\n', WTSRange.nodeToEndOfFile(node, programNode), isRedundant);
     }
 }
 
@@ -162,21 +146,20 @@ export namespace connect {
 }
 
 export namespace replace {
-    export function between(former: TSNode, latter: TSNode, newText: string = ''): Edit {
-        // return lsp.TextEdit.replace(LSPRange.betweenNodes(former, latter), newText);
-        return new Replacement(newText, WTSRange.betweenNodes(former, latter));
+    export function between(former: TSNode, latter: TSNode, newText: string = '', isRedundant: boolean = false): Edit {
+        return new Replacement(newText, WTSRange.betweenNodes(former, latter), isRedundant);
     }
 }
 
 export namespace space {
     export function pair(former: TSNode, latter: TSNode, count: number = 1): MaybeEdit {
-        if (
-            TSNode.Pair.indexDifferenceBetween(former, latter) === count &&
-            TSNode.Pair.rowDifferenceBetween(former, latter) === 0
-        ) {
-            return NO_EDIT;
+        if (former.type === 'comment') {
+            return;
         }
-        return former.type === 'comment' ? undefined : replace.between(former, latter, ' '.repeat(count));
+        const isRedundant =
+            TSNode.Pair.indexDifferenceBetween(former, latter) === count &&
+            TSNode.Pair.rowDifferenceBetween(former, latter) === 0;
+        return replace.between(former, latter, ' '.repeat(count), isRedundant);
     }
 
     export function previous(node: TSNode, count: number = 1): MaybeEdit {
@@ -189,14 +172,11 @@ export namespace space {
 }
 
 export namespace linesBetween {
-    export function pair(former: TSNode, latter: TSNode, count: number = 1): Edit | NoEdit {
-        if (
+    export function pair(former: TSNode, latter: TSNode, count: number = 1): Edit {
+        const isRedundant =
             TSNode.Pair.rowDifferenceBetween(former, latter) === count &&
-            TSNode.Pair.indexDifferenceBetween(former, latter) === count
-        ) {
-            return NO_EDIT;
-        }
-        return replace.between(former, latter, '\n'.repeat(count));
+            TSNode.Pair.indexDifferenceBetween(former, latter) === count;
+        return replace.between(former, latter, '\n'.repeat(count), isRedundant);
     }
 
     export function previous(node: TSNode, count: number = 1): MaybeEdit {

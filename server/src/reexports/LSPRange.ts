@@ -8,6 +8,7 @@ export type LSPRange = lsp.Range;
 export function LSPRange(start: lsp.Position, end: lsp.Position): LSPRange {
     return { start, end };
 }
+
 export namespace LSPRange {
     export function present(range: LSPRange): string {
         if (range.start.line !== range.end.line) {

@@ -49,6 +49,7 @@ describe('formatting', () => {
         expect(captureNames).toContain('list');
         expect(captureNames).toContain('capture');
         expect(captureNames).toContain('list');
+        expect(captureNames).toContain('list');
 
         // let edits = formatMatches(matches, indentationMap, FormattingStyle({ tabSize: 2 }));
         let edits = formatMatches(matches, FormattingStyle.default());

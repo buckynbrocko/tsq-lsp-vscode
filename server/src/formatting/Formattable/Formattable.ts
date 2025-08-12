@@ -3,7 +3,7 @@ import { TSNode } from '../../reexports';
 import { WTSRange } from '../../reexports/WTSRange';
 import { LSPTextEdit } from '../../TextEditSimulator';
 import { FormattingContext } from '../Context';
-import { connect, format, MaybeEdit, MyEdit, remove, space } from '../Edit';
+import { connect, Edit, format, MaybeEdit, remove, space } from '../Edit';
 import { FormattingStyle } from '../Style';
 import { childCanBeInlined } from '../utilities';
 
@@ -58,9 +58,9 @@ export class Formattable {
         return [format.next(this.node, 1, context.indentationAfter(this.node))];
     }
 
-    edits(context: FormattingContext): MyEdit[] {
+    edits(context: FormattingContext): Edit[] {
         let edits = this._edits(context);
-        return (Array.isArray(edits) ? edits : [edits]).filter(MyEdit.is);
+        return (Array.isArray(edits) ? edits : [edits]).filter(Edit.is).filter(edit => !edit.isRedundant);
     }
 
     LSPEdits(context: FormattingContext): LSPTextEdit[] {

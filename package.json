@@ -1,5 +1,5 @@
 {
-  "name": "vscode-tree-sitter-dev",
+  "name": "tsq-lsp",
   "displayName": "VSCode tree-sitter Development",
   "description": "An extension to aid in development of tree-sitter grammars",
   "version": "0.0.1",
