@@ -8,7 +8,7 @@ export function WTSPoint(row: number = 0, column: number = 0): wts.Point {
 
 export namespace WTSPoint {
     export function present(point: WTSPoint): string {
-        return `(ln${point.row}, ch${point.column})`;
+        return `(${point.row}, ${point.column})`;
     }
 
     export function is(object: any): object is WTSPoint {

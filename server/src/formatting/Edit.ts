@@ -6,13 +6,14 @@ import { WTSPoint } from '../reexports/Point';
 export type Edits = Edit[];
 
 export type MaybeEdit = Edit | undefined;
-export type MaybeEdits = (Edit | undefined)[];
+export type MaybeEdits = MaybeEdit[];
 
 export interface Edit {
     readonly type: string;
     isRedundant: boolean;
+    get length(): number;
     toTextEdit(): lsp.TextEdit;
-    present(): string;
+    toString(): string;
 }
 
 export namespace Edit {
@@ -58,9 +59,12 @@ export class Insertion implements Edit {
         };
     }
 
-    present(): string {
-        const length = this.content.length;
-        return `Insertion ${length}ch @ ${WTSPoint.present(this.point)}}`;
+    get length(): number {
+        return this.content.length;
+    }
+
+    toString(): string {
+        return `Insertion\t${this.length}ch\t@ ${WTSPoint.present(this.point)}}`;
     }
 }
 
@@ -74,8 +78,13 @@ export class Deletion implements Edit {
             range: LSPRange.fromWTSRange(this.range),
         };
     }
-    present(): string {
-        return `Deletion @ ${WTSRange.present(this.range)}}`;
+
+    get length(): number {
+        return this.range.endIndex - this.range.startIndex;
+    }
+
+    toString(): string {
+        return `Deletion\t${this.length}ch\t@ ${WTSRange.present(this.range)}`;
     }
 }
 
@@ -89,8 +98,15 @@ export class Replacement implements Edit {
             range: LSPRange.fromWTSRange(this.range),
         };
     }
-    present(): string {
-        return `Replacement ${this.content.length}ch @ ${WTSRange.present(this.range)}}`;
+
+    get length(): number {
+        return this.range.endIndex - this.range.startIndex;
+    }
+
+    toString(): string {
+        const difference = this.content.length - this.length;
+        const diffText = difference > 0 ? `+${difference}` : `${difference}`;
+        return `Replacement\t${diffText}ch\t@ ${WTSRange.present(this.range)}`;
     }
 }
 
@@ -147,7 +163,14 @@ export namespace connect {
 
 export namespace replace {
     export function between(former: TSNode, latter: TSNode, newText: string = '', isRedundant: boolean = false): Edit {
-        return new Replacement(newText, WTSRange.betweenNodes(former, latter), isRedundant);
+        if (former.endIndex === latter.startIndex && newText.length > 0) {
+            return new Insertion(newText, former.endPosition, isRedundant);
+        }
+        const range = WTSRange.betweenNodes(former, latter);
+        if (newText.length === 0) {
+            return new Deletion(range, isRedundant);
+        }
+        return new Replacement(newText, range, isRedundant);
     }
 }
 

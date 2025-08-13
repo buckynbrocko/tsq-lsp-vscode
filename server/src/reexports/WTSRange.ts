@@ -35,6 +35,7 @@ export namespace WTSRange {
     }
 
     export function present(range: WTSRange): string {
+        return `(${range.startPosition.row}, ${range.startPosition.column})-(${range.endPosition.row}, ${range.endPosition.column})`;
         if (range.startIndex !== range.endIndex) {
             return `line ${range.startPosition.row + 1}, column ${range.startPosition.column + 1} <-> line ${
                 range.endPosition.row + 1
