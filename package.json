@@ -1,5 +1,5 @@
 {
-  "name": "tsq-lsp",
+  "name": "tsq-lsp-vscode",
   "displayName": "VSCode tree-sitter Development",
   "description": "An extension to aid in development of tree-sitter grammars",
   "version": "0.0.1",
@@ -60,17 +60,115 @@
     ],
     "commands": [
       {
-        "command": "vscode-tree-sitter-dev.print-document-tree",
+        "command": "tsq-lsp-vscode.print-document-tree",
         "title": "Print Document Tree"
       },
       {
-        "command": "vscode-tree-sitter-dev.refresh-semantic-tokens",
+        "command": "tsq-lsp-vscode.refresh-semantic-tokens",
         "title": "Refresh Semantic Tokens"
       },
       {
-        "command": "vscode-tree-sitter-dev.reload-node-types",
+        "command": "tsq-lsp-vscode.reload-node-types",
         "title": "Reload Node Types"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "tsq-lsp-vscode",
+      "type": "object",
+      "properties": {
+        "tsq-lsp-vscode.formatting.anchors.forceOntoNewline": {
+          "type": "boolean",
+          "default": false
+        },
+        "tsq-lsp-vscode.formatting.anchors.spaceBeforeClose": {
+          "type": "boolean",
+          "default": false
+        },
+        "tsq-lsp-vscode.formatting.comments.allowInline": {
+          "type": "boolean",
+          "default": true
+        },
+        "tsq-lsp-vscode.formatting.groupings.maxInlineChildren": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "default": 2
+        },
+        "tsq-lsp-vscode.formatting.groupings.closingStyle": {
+          "enum": [
+            "inline",
+            "inner indentation",
+            "outer indentation"
+          ],
+          "default": "inline"
+        },
+        "tsq-lsp-vscode.formatting.groupings.outerIndentTopLevelClose": {
+          "type": "boolean",
+          "default": true
+        },
+        "tsq-lsp-vscode.formatting.lists.maxInlineChildren": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "default": 2
+        },
+        "tsq-lsp-vscode.formatting.lists.closingStyle": {
+          "enum": [
+            "inline",
+            "inner indentation",
+            "outer indentation"
+          ],
+          "default": "inline"
+        },
+        "tsq-lsp-vscode.formatting.lists.outerIndentTopLevelClose": {
+          "type": "boolean",
+          "default": true
+        },
+        "tsq-lsp-vscode.formatting.namedNodes.maxInlineChildren": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "default": 2
+        },
+        "tsq-lsp-vscode.formatting.namedNodes.closingStyle": {
+          "enum": [
+            "inline",
+            "inner indentation",
+            "outer indentation"
+          ],
+          "default": "inline"
+        },
+        "tsq-lsp-vscode.formatting.namedNodes.outerIndentTopLevelClose": {
+          "type": "boolean",
+          "default": true
+        },
+        "tsq-lsp-vscode.formatting.predicates.maxInlineChildren": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "default": 2
+        },
+        "tsq-lsp-vscode.formatting.predicates.closingStyle": {
+          "enum": [
+            "inline",
+            "inner indentation",
+            "outer indentation"
+          ],
+          "default": "inline"
+        },
+        "tsq-lsp-vscode.formatting.predicates.outerIndentTopLevelClose": {
+          "type": "boolean",
+          "default": true
+        }
+      }
+    }
   }
 }

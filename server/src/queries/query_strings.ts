@@ -14,4 +14,4 @@ export const CHILD_NODES = `(named_node name: (identifier) @parent.name (named_n
 export const LINTING = '';
 export const HIGHLIGHTING = '';
 export const FORMATTING = '';
-export const FORMATTING3 = '';
+// export const FORMATTING3 = '';

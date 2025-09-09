@@ -8,7 +8,7 @@ import { TSQCompletionEngine } from './completions/CompletionEngine';
 import { ALL, closestAncestorOfType, TSQCompletionContext } from './completions/completions';
 import { Dict } from './Dict';
 // import { formattingEdits } from './formatting/formatting-old';
-import { formatMatches } from './formatting';
+import { formatMatches } from './formatting/formatMatches';
 import { FormattingStyle } from './formatting/Style';
 import { _formatTree, Identifier } from './junk_drawer';
 import { lintAll } from './lints';
@@ -21,6 +21,8 @@ import { Capture, Captures, TreeSitter } from './TreeSitter';
 import { FieldName, Literal, TypeName } from './typeChecking';
 import { TypeEnvironment } from './TypeEnvironment';
 
+const EXTENSION_NAME = 'tsq-lsp-vscode';
+
 export class LSPServer {
     private connection: lsp.Connection;
     private resourcesPath: string;
@@ -32,6 +34,7 @@ export class LSPServer {
     DEBUG: boolean = true;
     treeCache: Dict<DocumentUri, wts.Tree> = new Dict();
     captureMapCache: Dict<DocumentUri, Capture.Map> = new Dict();
+    formattingStyle: FormattingStyle;
 
     supports = {
         workspaceFolders: false,
@@ -50,6 +53,7 @@ export class LSPServer {
     constructor(connection: lsp.Connection, resourcesPath: string, connectionIsUnique: boolean = true) {
         this.connection = connection;
         this.resourcesPath = resourcesPath;
+        this.formattingStyle = FormattingStyle.default();
         // this.scheduledParser = new TreeThingy();
         this.documents.onDidChangeContent(this.onDidChangeContent.bind(this));
         // this.connection.onDidChangeTextDocument(this.onDidChangeTextDocument.bind(this));
@@ -63,6 +67,7 @@ export class LSPServer {
             this.connection.onRenameRequest(this.onRenameRequest.bind(this));
             this.connection.onPrepareRename(this.onPrepareRename.bind(this));
             this.connection.onDocumentFormatting(this.onDocumentFormatting.bind(this));
+            this.connection.onDidChangeConfiguration(this.onDidChangeConfiguration.bind(this));
             this.connection.languages.semanticTokens.on(this.onSemanticTokensFull.bind(this));
         }
         this.documents.listen(this.connection);
@@ -73,10 +78,6 @@ export class LSPServer {
 
     debug(argument: any, ...optionalParams: any[]): void {
         console.debug(`${this.workspace?.name ?? 'server'}: ${argument}`, ...optionalParams);
-
-        // if (this.DEBUG) {
-        //     console.debug(argument, ...optionalParams);
-        // }
     }
 
     //#region Handlers
@@ -117,42 +118,12 @@ export class LSPServer {
             workspace: { workspaceFolders: { supported: false } },
         };
 
-        // if (this.workspace?.name) {
-        //     capabilities.semanticTokensProvider.id = this.workspace.name;
-        // }
-
-        // if (this.supports.workspaceFolders) {
-        //     capabilities.workspace = { workspaceFolders: { supported: true } };
-        // }
-
-        // if (!!clientCapabilities.textDocument?.semanticTokens?.serverCancelSupport) {
-        //     let pattern = '**/*.{scm,scheme}';
-        //     console.debug(this.workspace?.name);
-        //     // if (this.workspace?.name) {
-        //     //     pattern = `**/${this.workspace.name}/${pattern}`;
-        //     // }
-        //     capabilities.semanticTokensProvider = {
-        //         documentSelector: [{ pattern: '**/*.{scm,scheme}' }],
-        //         full: true,
-        //         range: false,
-        //         legend: {
-        //             tokenModifiers: Token.MODIFIERS,
-        //             tokenTypes: Token.TYPES,
-        //         },
-        //     };
-        //     if (this.workspace?.name) {
-        //         capabilities.semanticTokensProvider.id = this.workspace.name;
-        //     }
-        // }
-
-        // if (!!parameters.capabilities.textDocument?.references) {
-        //     result.capabilities.referencesProvider = true;
-        // }
-
         return { capabilities } as lsp.InitializeResult;
     }
 
     onInitialized(): void {
+        this.loadConfiguration();
+
         if (this.supports.workspaceFolders) {
             this.connection.workspace.onDidChangeWorkspaceFolders(this.onDidChangeWorkspaceFolders.bind(this));
 
@@ -221,41 +192,8 @@ export class LSPServer {
         return completionHandler(context, this.typeEnvironment, this.completions, completionMapCache);
     }
 
-    async onExecuteCommand(
-        parameters: lsp.ExecuteCommandParams,
-        token?: lsp.CancellationToken,
-        workDoneProgress?: lsp.WorkDoneProgressReporter
-    ): Promise<any> {
-        const command: string = parameters.command;
-        const args: string[] = parameters.arguments || [];
-
-        switch (command) {
-            case 'vscode-tree-sitter-dev.print-document-tree':
-                const uri = args[0]!;
-                const text = this.documents.get(uri)?.getText();
-                if (!text) {
-                    console.debug(`Failed to retrieve text for document '${uri.toString()}'`);
-                } else {
-                    this.tree_sitter.scheduleParse(text, tree => {
-                        if (!!tree?.rootNode) {
-                            console.debug(_formatTree(tree));
-                            // debug(tree.rootNode.toString());
-                        }
-                    });
-                }
-                break;
-            case 'vscode-tree-sitter-dev.reload-node-types':
-                this.loadNodeTypes();
-                break;
-            case 'vscode-tree-sitter-dev.refresh-semantic-tokens':
-                this.connection.languages.semanticTokens.refresh();
-                break;
-            default:
-                console.debug(`${this.workspace?.name ?? 'lsp'}: Unrecognized command '${command}'`);
-                return;
-        }
-        console.debug(`${this.workspace?.name ?? ''} executed command '${command}'`);
-        return;
+    onDidChangeConfiguration(params: lsp.DidChangeConfigurationParams): void {
+        this.loadConfiguration();
     }
 
     onDidChangeWorkspaceFolders(event: lsp.WorkspaceFoldersChangeEvent): void {
@@ -336,7 +274,7 @@ export class LSPServer {
             return null;
         }
         let matches: wts.QueryMatch[] = this.tree_sitter.queries.FORMATTING.matches(rootNode);
-        let edits: lsp.TextEdit[] = formatMatches(matches, FormattingStyle.fromPartial({ options: parameters.options }));
+        let edits: lsp.TextEdit[] = formatMatches(matches, this.formattingStyle.withOptions(parameters.options));
 
         // let edits: lsp.TextEdit[] = formattingEdits(rootNode, FormattingStyle(parameters.options));
 
@@ -377,6 +315,43 @@ export class LSPServer {
         if (!cancellationToken.isCancellationRequested) {
             return symbols;
         }
+        return;
+    }
+
+    async onExecuteCommand(
+        parameters: lsp.ExecuteCommandParams,
+        token?: lsp.CancellationToken,
+        workDoneProgress?: lsp.WorkDoneProgressReporter
+    ): Promise<any> {
+        const command: string = parameters.command;
+        const args: string[] = parameters.arguments || [];
+
+        switch (command) {
+            case 'tsq-lsp-vscode.print-document-tree':
+                const uri = args[0]!;
+                const text = this.documents.get(uri)?.getText();
+                if (!text) {
+                    console.debug(`Failed to retrieve text for document '${uri.toString()}'`);
+                } else {
+                    this.tree_sitter.scheduleParse(text, tree => {
+                        if (!!tree?.rootNode) {
+                            console.debug(_formatTree(tree));
+                            // debug(tree.rootNode.toString());
+                        }
+                    });
+                }
+                break;
+            case 'tsq-lsp-vscode.reload-node-types':
+                this.loadNodeTypes();
+                break;
+            case 'tsq-lsp-vscode.refresh-semantic-tokens':
+                this.connection.languages.semanticTokens.refresh();
+                break;
+            default:
+                console.debug(`${this.workspace?.name ?? 'lsp'}: Unrecognized command '${command}'`);
+                return;
+        }
+        console.debug(`${this.workspace?.name ?? ''} executed command '${command}'`);
         return;
     }
 
@@ -640,6 +615,21 @@ export class LSPServer {
                         console.error(reason);
                     });
             });
+        });
+    }
+
+    loadConfiguration(): void {
+        this.connection.workspace.getConfiguration(EXTENSION_NAME).then(result => {
+            try {
+                let newStyle = FormattingStyle.fromObject(result.formatting);
+                this.formattingStyle = newStyle;
+                console.dir(this.formattingStyle);
+                this.connection.console.info('updated configuration');
+            } catch (e) {
+                console.error('invalid configuration object:');
+                console.dir(result);
+            }
+            // this.debug(result);
         });
     }
 

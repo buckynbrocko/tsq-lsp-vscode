@@ -77,10 +77,10 @@ export class NamedNode extends ChildBearing {
                         edits.push(space.next(n));
                     } else {
                         const rowDifference: number = TSNode.rowsBetweenNext(n);
-                        const newlines: number = this.style.subLevel.fitNewlines(rowDifference);
+                        const newlines: number = context.style.subLevel.fitNewlines(rowDifference);
                         edits.push(format.next(n, newlines, indentation));
                     }
-                });
+                }, this);
             edits.push(this.uninlinedClose(context));
             // edits.push(this.uninlinedClose(this.close, context.style.namedNodeClosingStyle, context));
         }

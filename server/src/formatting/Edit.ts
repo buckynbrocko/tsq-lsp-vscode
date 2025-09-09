@@ -64,7 +64,7 @@ export class Insertion implements Edit {
     }
 
     toString(): string {
-        return `Insertion\t${this.length}ch\t@ ${WTSPoint.present(this.point)}}`;
+        return `Insertion\t+${this.length}ch\t@ ${WTSPoint.present(this.point)}}`;
     }
 }
 
@@ -84,7 +84,7 @@ export class Deletion implements Edit {
     }
 
     toString(): string {
-        return `Deletion\t${this.length}ch\t@ ${WTSRange.present(this.range)}`;
+        return `Deletion\t-${this.length}ch\t@ ${WTSRange.present(this.range)}`;
     }
 }
 
@@ -103,10 +103,16 @@ export class Replacement implements Edit {
         return this.range.endIndex - this.range.startIndex;
     }
 
-    toString(): string {
+    get differenceText(): string {
         const difference = this.content.length - this.length;
-        const diffText = difference > 0 ? `+${difference}` : `${difference}`;
-        return `Replacement\t${diffText}ch\t@ ${WTSRange.present(this.range)}`;
+        if (difference === 0) {
+            return `=${this.length}`;
+        }
+        return difference > 0 ? `+${difference}` : `${difference}`;
+    }
+
+    toString(): string {
+        return `Replacement\t${this.differenceText}ch\t@ ${WTSRange.present(this.range)}`;
     }
 }
 
@@ -123,6 +129,9 @@ export namespace format {
         const rowDifference: number = TSNode.Pair.rowDifferenceBetween(former, latter);
         const indexDifference: number = TSNode.Pair.indexDifferenceBetween(former, latter);
         const isRedundant = rowDifference === newlines && indexDifference === newlines + spaces;
+        if (newText.length === 0) {
+            return new Deletion(range, isRedundant);
+        }
         return new Replacement(newText, range, isRedundant);
     }
 
@@ -142,7 +151,7 @@ export namespace remove {
     }
 
     export function after(node: TSNode, programNode: TSNode): Edit {
-        const isRedundant = node.endIndex === programNode.endIndex && programNode.text.endsWith('\n');
+        const isRedundant = node.endIndex + 1 === programNode.endIndex && programNode.text.endsWith('\n');
         return new Replacement('\n', WTSRange.nodeToEndOfFile(node, programNode), isRedundant);
     }
 }

@@ -1,16 +1,74 @@
 import { TSNode } from './reexports';
 
 export type Predicate<T> = (arg: T) => boolean;
+
+class DynamicPredicate<T> extends Function {
+    constructor (public fn: Predicate<T>) {
+        super()
+    }
+    call(arg: any): arg is T {
+        return this.fn(arg);
+    }
+
+    get orNull(): OrPredicate<T | null> {
+        return new OrPredicate<T | null>([this.fn, isNull] as Predicate<T | null>[]);
+    }
+
+    get orUndefined(): OrPredicate<T | undefined> {
+        return new OrPredicate<T | undefined>([this.fn, isUndefined] as Predicate<T | undefined>[]);
+    }
+}
+
+const DynamicIsNumber = new DynamicPredicate<number>(isNumber);
+const is_a_number = DynamicIsNumber(4);
+
+class OrPredicate<T> {
+    constructor(public fns: Predicate<T>[]) {}
+    call(arg: any): arg is T {
+        return this.fns.some(fn => fn(arg));
+    }
+}
+
+export function isAny(object: any): object is any {
+    return object !== undefined;
+}
+
+export function isNull(object: any): object is null {
+    return object === null;
+}
+
+export function isUndefined(object: any): object is undefined {
+    return object === undefined;
+}
+
 export function isString(object: unknown): object is string {
     return typeof object === 'string';
 }
 
 export function isPositiveOrUndefined(object: number | undefined): boolean {
-    return object === undefined || object >= 0;
+    return object === undefined || object > 0;
 }
 
 export function isBoolean(object: unknown): object is boolean {
     return typeof object === 'boolean';
+}
+
+export function isNumber(object: unknown): object is number {
+    return typeof object === 'number';
+}
+
+export function isObject(object: unknown): object is Object | {} {
+    return typeof object === 'object';
+}
+
+export namespace isNumber {
+    export function orNull(object: any): object is number | null {
+        return isNumber(object) || isNull(object);
+    }
+
+    export function orUndefined(object: any): object is number | undefined {
+        return isNumber(object) || isUndefined(object);
+    }
 }
 
 export function hasNonZeroLength<T>(object: T[]): object is [T, ...T[]] {
@@ -187,8 +245,10 @@ export function hasProperty<P extends PropertyKey, T>(
     object: any,
     name: P,
     predicate?: TypePredicate<T>
-): object is typeof object & typeof predicate extends undefined ? HasProperty<typeof name> : HasPropertyOfType<typeof name, T> {
-    return object !== null && typeof object === 'object' && object.hasOwnProperty(name);
+): object is typeof predicate extends undefined ? HasProperty<typeof name> : HasPropertyOfType<typeof name, T> {
+    return (
+        object !== null && typeof object === 'object' && object.hasOwnProperty(name) && (!predicate || predicate(object[name]))
+    );
 }
 
 export function isRecordOf<T>(
@@ -206,7 +266,8 @@ export function hasPropertyOfType<P extends string | number, PT>(
     object: any,
     name: P,
     predicate: TypePredicate<PT>
-): object is typeof object & HasPropertyOfType<P, PT> {
+    // ): object is typeof object & HasPropertyOfType<P, PT> {
+): object is { [Key in P]: PT } {
     return hasProperty(object, name) && predicate(object[name]);
 }
 
@@ -256,3 +317,5 @@ const EMPTY_ARRAY = [] as const;
 export type EmptyArray = typeof EMPTY_ARRAY;
 export const EMPTY = {} as const;
 export type EmptyObject = typeof EMPTY;
+
+const GETTER_SENTINEL = new Object();

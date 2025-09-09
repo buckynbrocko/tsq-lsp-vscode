@@ -1,6 +1,6 @@
 import { TSNode, WTSRange } from '../../reexports';
 import { FormattingContext } from '../Context';
-import { connect, format, MaybeEdit } from '../Edit';
+import { connect, format, MaybeEdit, space } from '../Edit';
 import { ClosingStyle, NodeStyle } from '../Style';
 import { exceedsMaxInlineChildren } from '../utilities';
 import { Formattable } from './Formattable';
@@ -17,7 +17,9 @@ export abstract class ChildBearing extends Formattable {
     abstract get nodeStyle(): NodeStyle;
 
     get closingStyle(): ClosingStyle {
-        return this.isTopLevel && this.nodeStyle.hangTopLevelClose ? ClosingStyle.Hanging : this.nodeStyle.closingStyle;
+        return this.isTopLevel && this.nodeStyle.hangTopLevelClose
+            ? ClosingStyle.OuterIndentation
+            : this.nodeStyle.closingStyle;
     }
 
     get maxInlineChildren(): number | undefined {
@@ -44,16 +46,33 @@ export abstract class ChildBearing extends Formattable {
     inlinedClose() {}
 
     uninlinedClose(context: FormattingContext): MaybeEdit {
+        if (this.close.previousSibling?.type === '.') {
+            console.log(this.node.type);
+            console.log(this.close.previousSibling.type);
+            console.log(this.closingStyle);
+            console.log(`spaceBeforeClose: ${context.style.anchors.spaceBeforeClose}`);
+        }
         switch (this.closingStyle) {
-            case ClosingStyle.Connected:
+            case ClosingStyle.Inline:
                 if (this.close.previousSibling?.type === 'comment') {
+                    console.log('COMMENT');
                     return format.previous(this.close, 1, context.indentationBefore(this.close));
                 }
+                if (this.close.previousSibling?.type === '.' && context.style.anchors.spaceBeforeClose) {
+                    console.log('HERE');
+                    return space.previous(this.close);
+                }
+                console.log('DEFAULT');
                 return connect.previous(this.close);
-            case ClosingStyle.Hanging:
+            case ClosingStyle.OuterIndentation:
+                this.close.previousSibling?.type === '.' && console.log('OUTER');
                 return format.previous(this.close, 1, context.indentationBefore(this.close, -1));
-            case ClosingStyle.Tucked:
+            case ClosingStyle.InnerIndentation:
+                this.close.previousSibling?.type === '.' && console.log('INNER');
                 return format.previous(this.close, 1, context.indentationBefore(this.close));
+            default:
+                console.error(`Invalid closing style '${this.closingStyle}'`);
+                return undefined;
         }
     }
 }

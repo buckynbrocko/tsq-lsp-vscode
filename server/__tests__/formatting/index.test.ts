@@ -1,7 +1,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import * as path from 'node:path';
 import { Language, Parser, Query } from 'web-tree-sitter';
-import { formatMatches } from '../../src/formatting';
+import { formatMatches } from '../../src/formatting/formatMatches';
 import { FormattingStyle } from '../../src/formatting/Style';
 import { attemptEdits } from '../../src/TextEditSimulator';
 import { initializeLanguage, loadQuery } from '../shared';

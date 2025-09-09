@@ -1,7 +1,10 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from 'vscode-languageclient/node';
+import { DidChangeConfigurationNotification, LanguageClient, LanguageClientOptions, ProtocolNotificationType, ServerOptions, TransportKind, URI } from 'vscode-languageclient/node';
 import { printDocumentTree, refreshSemanticTokens, reloadNodeTypes } from './commands';
+
+export const EXTENSION_NAME = 'tsq-lsp-vscode';
+
 
 const DEBUG = true;
 let client: LanguageClient;
@@ -11,7 +14,7 @@ const clients = new Map<string, LanguageClient>();
 
 export function activate(context: vscode.ExtensionContext) {
     // const module = context.asAbsolutePath(path.join('server', 'out', 'server.js'));
-    const outputChannel: vscode.OutputChannel = vscode.window.createOutputChannel('vscode-tree-sitter-dev-extension');
+    const outputChannel: vscode.OutputChannel = vscode.window.createOutputChannel(EXTENSION_NAME);
     const extensionPath: string = context.asAbsolutePath('resources');
     const serverModule: string = context.asAbsolutePath(path.join('server', 'out', 'src', 'server.js'));
     const serverOptions: ServerOptions = {
@@ -48,11 +51,11 @@ export function activate(context: vscode.ExtensionContext) {
             // console.debug(`Starting new client for workspace "${folder.name}"`);
             const clientOptions: LanguageClientOptions = {
                 documentSelector: [{ pattern: '**/queries/**/*.scm' }],
-                diagnosticCollectionName: 'vscode-tree-sitter-dev-extension',
+                diagnosticCollectionName: EXTENSION_NAME,
                 workspaceFolder: folder,
                 outputChannel: outputChannel,
             };
-            const client = new LanguageClient('vscode-tree-sitter-dev-extension', serverOptions, clientOptions);
+            const client = new LanguageClient(EXTENSION_NAME, serverOptions, clientOptions);
             client.start();
             clients.set(folder.uri.toString(), client);
             console.debug(`Client started for workspace "${folder.name}"`);
@@ -60,8 +63,24 @@ export function activate(context: vscode.ExtensionContext) {
         }
     }
 
+    function didChangeConfiguration(event: vscode.ConfigurationChangeEvent) {
+        [...clients.entries()]
+            .filter(([uri, _client]) => {
+                try {
+                    const uri_ = vscode.Uri.parse(uri);
+                    return event.affectsConfiguration(EXTENSION_NAME, uri_);
+                } catch (error) {
+                    console.error(error);
+                }
+                return true; // just assume I guess?
+            })
+            .forEach(([_uri, client]) => client.sendNotification(DidChangeConfigurationNotification.type, {settings: undefined}));
+
+    }
+
     vscode.workspace.onDidOpenTextDocument(didOpenTextDocument);
     vscode.workspace.textDocuments.forEach(didOpenTextDocument);
+
     vscode.workspace.onDidChangeWorkspaceFolders(event => {
         for (const folder of event.removed) {
             const client = clients.get(folder.uri.toString());
@@ -73,6 +92,8 @@ export function activate(context: vscode.ExtensionContext) {
             }
         }
     });
+
+    vscode.workspace.onDidChangeConfiguration(didChangeConfiguration);
 
     // async function reloadNodeTypes() {
     //     const uri: vscode.Uri = vscode.window.activeTextEditor.document.uri;
@@ -92,7 +113,6 @@ export function activate(context: vscode.ExtensionContext) {
     //         }
     //     );
     // }
-
 
     context.subscriptions.push(
         vscode.commands.registerCommand('vscode-tree-sitter-dev.reload-node-types', () => reloadNodeTypes(clients)),
