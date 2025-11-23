@@ -2,7 +2,7 @@
 module.exports = {
     verbose: true,
     // cache: false,
-    // watchPlugins: [['<rootDir>/server/out/__tests__/watchQueries', {}]],
+    // watchPlugins: ['./server/out/src/query_watch_plugin.js'],
 
     transform: {
         '\\.ts$': 'ts-jest',
@@ -14,8 +14,9 @@ module.exports = {
     testMatch: ['**/server/__tests__/**/**.test.ts'],
     moduleDirectories: ['node_modules', 'server/node_modules'],
     onlyChanged: true,
+    testTimeout: 1000,
+    // watchAll: true,
     watch: true,
-    watchAll: false,
 
     moduleFileExtensions: [
         'ts',
@@ -25,6 +26,7 @@ module.exports = {
         'json',
         'node',
         'wasm',
+        'scm',
         // 'scm', 'source', 'expectation'
     ],
 };

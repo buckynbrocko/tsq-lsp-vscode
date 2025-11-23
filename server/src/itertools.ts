@@ -12,8 +12,11 @@ export function split<T>(items: T[], predicate: Predicate<T>): [T[], T[]] {
     }
     return [a, b];
 }
-export function firstOf<T>(array: T[]): T | undefined {
-    return array.at(0);
+export function firstOf<T>(iterable: Iterable<T>): T | undefined {
+    for (let item of iterable) {
+        return item;
+    }
+    return;
 }
 
 export function lastOf<T>(array: T[]): T | undefined {

@@ -1,5 +1,4 @@
 // import { Node as TSNode } from 'web-tree-sitter';
-import { TSNode } from './reexports';
 import {
     hasPropertiesOfTypes,
     hasPropertyOfType,
@@ -9,6 +8,7 @@ import {
     isString,
     lacksOrHasPropertyOfType,
 } from './predicates';
+import { TSNode } from './reexports';
 import { FieldName, Literal, TypeName } from './typeChecking';
 
 export type NodeType = Leaf | NodeInfo;
@@ -23,7 +23,7 @@ export type Named<T> = T extends Common
     ? T & { isNamed: true; type: TypeName }
     : never;
 export type Unnamed<T extends Common> = T & { named: false; type: Literal };
-export type LiteralNode = Unnamed<Common>;
+export type LiteralNode = Unnamed<Common> & { type: Literal };
 
 export type HasSubtypes<T> = T & { subtypes: Common[] };
 
@@ -165,6 +165,10 @@ export namespace NodeTypes {
         leaves: Leaf[] = [];
         namedLeaves: Named<Leaf>[] = [];
         all: NodeType[];
+
+        static empty(): Categorized {
+            return new Categorized([]);
+        }
 
         constructor(types: NodeType[]) {
             this.all = types;

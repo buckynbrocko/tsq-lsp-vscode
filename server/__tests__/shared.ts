@@ -4,7 +4,7 @@ import { Language, Query } from 'web-tree-sitter';
 import { newLanguage } from '../src/junk_drawer';
 
 export async function initializeLanguage(file: string = 'tree-sitter-query.wasm') {
-    let languagePath: string = path.resolve(path.join('resources', 'tree-sitter-query.wasm'));
+    let languagePath: string = path.resolve(path.join('resources', file));
     return await newLanguage(languagePath);
 }
 

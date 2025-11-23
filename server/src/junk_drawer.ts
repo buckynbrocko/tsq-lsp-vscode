@@ -34,6 +34,15 @@ export function depthOf(node?: TSNode | null): number {
     return depth;
 }
 
+export function* enumerate<T>(iterable: Iterable<T>) {
+    let count = 0;
+    for (let item of iterable) {
+        yield [count, item] satisfies [number, T];
+        count += 1;
+    }
+    return undefined;
+}
+
 export function compareDepthOfFirstCaptureNode(a: wts.QueryCapture[], b: wts.QueryCapture[]): number {
     return depthOf(a.at(0)?.node) - depthOf(b.at(0)?.node);
 }
@@ -97,6 +106,54 @@ export namespace Identifier {
             return node.childrenForFieldName('name').filter(isNotNullish).at(0);
         return;
     }
+}
+type PropertyOr<Type, Key extends PropertyKey, Default = undefined> =
+    | undefined
+    | (Key extends keyof (infer A) ? (Type extends A ? Type[Key] : undefined) : undefined);
+
+export function getProperty<T, Key extends PropertyKey>(
+    object_: T,
+    key: Key
+    // default_: D | undefined = undefined
+): undefined | (Key extends keyof (infer A) ? (T extends A ? T[Key] : undefined) : undefined) {
+    if (key in Object.getOwnPropertyNames(object_)) {
+        return (object_ as any)[key];
+    }
+    return undefined;
+}
+let getPropertyInput: '.' | { a: 'b' } = { a: 'b' };
+let getPropertyOutput = getProperty(getPropertyInput, 'a');
+
+export function truncateString(string_: string, maxLength: number): string {
+    if (maxLength < 0 || !Number.isInteger(maxLength)) {
+        return '';
+    }
+    return string_.slice(0, Math.min(string_.length, maxLength));
+}
+
+export function elipsizeString(string_: string, maxLength: number): string {
+    let truncated = truncateString(string_, maxLength - 3);
+    if (string_.length > 4 && maxLength > 4) {
+        return truncated + '...';
+    }
+    return truncated;
+}
+
+export function* IntegerRange(exclusiveEnd: number) {
+    if (exclusiveEnd <= 0 || !Number.isInteger(exclusiveEnd)) {
+        console.error(`Invalid endpoint '${exclusiveEnd}'`);
+        return;
+    }
+    let count: number = 0;
+    while (count < exclusiveEnd) {
+        yield count;
+        count += 1;
+    }
+    return;
+}
+
+export function nameOfNamedNode(node: TSNode): string | undefined {
+    return node.type !== 'named_node' ? undefined : Identifier.ofNode(node)?.text;
 }
 
 /**
@@ -170,4 +227,3 @@ export function _formatTree(tree: wts.Tree): string {
     }
     return lines.join('\n');
 }
-

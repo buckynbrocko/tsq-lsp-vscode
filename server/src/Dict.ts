@@ -9,6 +9,10 @@ export class Dict<K extends Index, V> extends Map<K, V> {
         return Array.from(this.entries()).map(callbackfn, thisArg);
     }
 
+    update(key: K, callbackfn: (arg: V | undefined) => V) {
+        this.set(key, callbackfn(this.get(key)));
+    }
+
     flatMap<R = any>(callbackfn: (value: V, index: number, array: V[]) => R, thisArg?: any): R[] {
         return [...this.values()].flatMap(callbackfn);
     }

@@ -3,8 +3,8 @@ import { TSNode } from './reexports';
 export type Predicate<T> = (arg: T) => boolean;
 
 class DynamicPredicate<T> extends Function {
-    constructor (public fn: Predicate<T>) {
-        super()
+    constructor(public fn: Predicate<T>) {
+        super();
     }
     call(arg: any): arg is T {
         return this.fn(arg);
@@ -17,6 +17,10 @@ class DynamicPredicate<T> extends Function {
     get orUndefined(): OrPredicate<T | undefined> {
         return new OrPredicate<T | undefined>([this.fn, isUndefined] as Predicate<T | undefined>[]);
     }
+}
+
+export function isDefined<T>(object: T | undefined): object is T {
+    return object !== undefined;
 }
 
 const DynamicIsNumber = new DynamicPredicate<number>(isNumber);

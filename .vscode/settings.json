@@ -18,7 +18,9 @@
     // "jest.runMode": "on-save"
     // "jest.rootPath": "server"
     "jest.runMode": {
-        "type": "watch",
+        "runAllTestsOnStartup": false,
+        "type": "watch"
+        // "type": "watch",
         // "testFileOnly": false
     },
     "oneDarkPro.markdownStyle": false,
