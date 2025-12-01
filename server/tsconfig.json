@@ -16,6 +16,6 @@
 
         // "esModuleInterop": true
     },
-    "include": ["src", "__tests__"],
+    "include": ["src", "__tests__", "__tests__/resources/lua"],
     "exclude": ["node_modules", ".vscode-test"]
 }

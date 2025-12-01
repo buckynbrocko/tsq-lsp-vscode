@@ -1,337 +1,566 @@
+import * as WTS from 'web-tree-sitter';
+import { Dict } from './Dict';
 import { firstOf } from './itertools';
-import { nameOfNamedNode } from './junk_drawer';
+import { alwaysReturnsTrue, nameOfNamedNode } from './junk_drawer';
 import { isNotNullish } from './predicates';
+import { QueryGrammar } from './QueryGrammar';
 import { TSNode } from './reexports';
+import { HasTerminality, KindaTerminal, NonTerminal, PseudoTerminal, Terminal, Terminality } from './Terminality';
 import { FieldName } from './typeChecking';
-import { ReGrammar } from './untitled';
 
-export type MetaNode = NamedNode | AnonymousNode | MissingNode | List | Grouping | FieldDefinition;
+export function isAnchor(node: TSNode): boolean {
+    return node.type === '.' && node.isNamed;
+}
 
-export namespace MetaNode {
-    export function tryFrom(node: TSNode, grammar: ReGrammar): MetaNode | undefined {
+export type Definition =
+    | Definition.NamedNode
+    | Definition.AnonymousNode
+    | Definition.MissingNode
+    | Definition.List
+    | Definition.Grouping
+    | Definition.FieldDefinition;
+
+// export type MetaNodeType
+export type TerminalDefinition = Terminal<Definition>;
+export type PseudoTerminalDefinition = PseudoTerminal<Definition>;
+export type NonTerminalDefinition = NonTerminal<Definition>;
+
+export type KindaTerminalDefinition = Terminal<Definition> | PseudoTerminal<Definition>;
+export type KindaNonTerminalDefinition = NonTerminal<Definition> | PseudoTerminal<Definition>;
+
+export class QueryFile {
+    private _topLevelNodes: Definition[] = [];
+    constructor(public grammar: QueryGrammar, private _nodes: Dict<number, Definition> = new Dict()) {}
+
+    get IDs(): Set<number> {
+        return new Set(this._nodes.keys());
+    }
+
+    get topLevelNodes(): Definition[] {
+        return [...this._topLevelNodes];
+    }
+
+    *yieldNodes() {
+        for (let node of this._nodes.values()) {
+            yield node;
+        }
+        return;
+    }
+
+    nodesOfType<T extends Definition['nodeType']>(...nodeTypes: T[]): Extract<Definition, { nodeType: T }>[] {
+        return this._nodes.valuesArray().filter(node => Definition.isType(node, ...nodeTypes));
+    }
+
+    has(arg: number | Definition): boolean {
+        let id = typeof arg === 'number' ? arg : arg.id;
+        return this._nodes.has(id);
+    }
+
+    public getNodeByID(id: number): Definition | undefined {
+        return this._nodes.get(id);
+    }
+
+    private addNode(node: Definition) {
+        if (this.has(node)) {
+            console.warn(`${Object.getPrototypeOf(this).name} already has node id ${node.id}`);
+        }
+        this._nodes.set(node.id, node);
+    }
+
+    getOrTryNew(node: TSNode) {
+        return this._nodes.get(node.id) ?? this.tryNewNode(node);
+    }
+
+    tryNewNode(node: TSNode): Definition | undefined {
+        let newNode = Definition.tryFrom(node, this);
+        if (!!newNode) {
+            this.addNode(newNode);
+        }
+        return newNode;
+    }
+
+    static fromTree(tree: WTS.Tree, grammar: QueryGrammar) {
+        const rootNode = tree.rootNode;
+        let instance = new QueryFile(grammar);
+        for (let child of rootNode.children) {
+            if (child !== null) {
+                let node = instance.tryNewNode(child);
+                if (!!node) {
+                    instance._topLevelNodes.push(node);
+                }
+            }
+        }
+        return instance;
+    }
+
+    static tryFromTree(tree: WTS.Tree | undefined, grammar: QueryGrammar): QueryFile | undefined {
+        if (!tree) {
+            return;
+        }
+        try {
+            return QueryFile.fromTree(tree, grammar);
+        } catch {}
+        return;
+    }
+}
+
+export namespace Definition {
+    export type NodeType = Definition['nodeType'];
+    const TERMINAL_NODE_TYPES: Terminal<Definition>['nodeType'][] = ['anonymous_node', 'missing_node'] as const;
+    const PSEUDO_TERMINAL_TYPES: PseudoTerminal<Definition>['nodeType'][] = ['named_node', 'field_definition'] as const;
+    const NON_TERMINAL_NODE_TYPES: NonTerminal<Definition>['nodeType'][] = ['grouping', 'list'] as const;
+    const NODE_TYPES: NodeType[] = [...TERMINAL_NODE_TYPES, ...NON_TERMINAL_NODE_TYPES, ...PSEUDO_TERMINAL_TYPES] as const;
+
+    export function isType<T extends NodeType>(node: Definition, ...types: T[]): node is Extract<Definition, { nodeType: T }> {
+        return types.includes(node.nodeType as T);
+    }
+
+    export function tryFrom(node: TSNode, queryFileOrGrammar: QueryFile | QueryGrammar): Definition | undefined {
         switch (node.type) {
             case 'named_node':
-                return NamedNode.tryFrom(node, grammar);
+                return NamedNode.tryFrom(node, queryFileOrGrammar);
             case 'anonymous_node':
-                return AnonymousNode.tryFrom(node, grammar);
+                return AnonymousNode.tryFrom(node, queryFileOrGrammar);
             case 'missing_node':
-                return MissingNode.tryFrom(node, grammar);
+                return MissingNode.tryFrom(node, queryFileOrGrammar);
             case 'list':
-                return List.tryFrom(node, grammar);
+                return List.tryFrom(node, queryFileOrGrammar);
             case 'grouping':
-                return Grouping.tryFrom(node, grammar);
+                return Grouping.tryFrom(node, queryFileOrGrammar);
             case 'field_definition':
-                return FieldDefinition.tryFrom(node, grammar);
+                return FieldDefinition.tryFrom(node, queryFileOrGrammar);
             default:
                 return;
         }
     }
 
-    type NodeType = MetaNode['nodeType'];
-    const TERMINAL_NODE_TYPES: NodeType[] = ['named_node', 'anonymous_node', 'missing_node', 'field_definition'] as const;
-    const NON_TERMINAL_NODE_TYPES: NodeType[] = ['grouping', 'list'] as const;
-    const NODE_TYPES: NodeType[] = [...TERMINAL_NODE_TYPES, ...NON_TERMINAL_NODE_TYPES] as const;
-    export function typeIsTerminal(node: TSNode): boolean {
-        return TERMINAL_NODE_TYPES.includes(node.type as NodeType);
-    }
-    export function isCompatible(node: TSNode): boolean {
+    export function isCompatible(node: TSNode): node is typeof node & { type: NodeType } {
         return NODE_TYPES.includes(node.type as NodeType);
     }
-}
 
-interface IMetaNode {
-    node: TSNode;
-    readonly nodeType: string;
-    grammar: ReGrammar;
-
-    isExtra: boolean;
-}
-function alwaysReturnsTrue(arg: any): true {
-    return true;
-}
-function isNotExtra(node: MetaNode): boolean {
-    return !node.isExtra;
-}
-abstract class AbstractMetaNode {
-    abstract readonly nodeType: string;
-    abstract isTerminal: boolean;
-    public abstract node: TSNode;
-    public abstract grammar: ReGrammar;
-
-    get isExtra() {
-        return this.grammar.extras.some(rule => rule.matchesTerminalNode(this.node));
+    function isNotExtra(node: Definition): boolean {
+        return !node.isExtra;
     }
 
-    get parent(): MetaNode | undefined {
-        return !this.node.parent ? undefined : MetaNode.tryFrom(this.node.parent, this.grammar);
-    }
+    type hmm = Definition.AnonymousNode['terminality'];
 
-    // firstTerminalNonExtraChildren(): MetaNode {
-    //     return this.firstTerminalChildren().fil
-    // }
-    private extraFilter(shouldSkip: boolean) {
-        return shouldSkip ? isNotExtra : alwaysReturnsTrue;
-    }
+    abstract class AbstractDefinition implements HasTerminality {
+        abstract readonly nodeType: string;
+        abstract isTerminal: boolean;
+        abstract readonly terminality: Terminality;
+        public abstract node: TSNode;
+        abstract readonly _queryFileOrGrammar: QueryGrammar | QueryFile;
 
-    *yieldChildren(skipExtras: boolean = true) {
-        let dontSkip = this.extraFilter(skipExtras);
-        for (let child_ of this.node.children.filter(isNotNullish)) {
-            let child = MetaNode.tryFrom(child_, this.grammar);
-            if (!!child && dontSkip(child)) {
+        get queryFile(): QueryFile | undefined {
+            return this._queryFileOrGrammar instanceof QueryFile ? this._queryFileOrGrammar : undefined;
+        }
+
+        get grammar(): QueryGrammar {
+            let thing = this._queryFileOrGrammar;
+            return thing instanceof QueryGrammar ? thing : thing.grammar;
+        }
+
+        get id(): number {
+            return this.node.id;
+        }
+
+        get asTerminal(): Terminal<Definition> | undefined {
+            return Terminality.isTerminal(this.asMetaNode) ? this.asMetaNode : undefined;
+        }
+
+        get asPseudoTerminal(): PseudoTerminal<Definition> | undefined {
+            return Terminality.isPseudoTerminal(this.asMetaNode) ? this.asMetaNode : undefined;
+        }
+
+        get asNonTerminal(): NonTerminal<Definition> | undefined {
+            return Terminality.isNonTerminal(this.asMetaNode) ? this.asMetaNode : undefined;
+        }
+
+        get isPseudoTerminal(): boolean {
+            return this.terminality === Terminality.PseudoTerminal;
+        }
+
+        get isNonTerminal(): boolean {
+            return !this.isTerminal;
+        }
+
+        get isKindaTerminal(): boolean {
+            return this.isTerminal || this.isPseudoTerminal;
+        }
+
+        get isKindaNonTerminal(): boolean {
+            return this.isNonTerminal || this.isPseudoTerminal;
+        }
+
+        get isExtra() {
+            return this.grammar.extras.some(rule => rule.matchesTerminalNode(this.node));
+        }
+
+        get parent(): Definition | undefined {
+            return !this.node.parent ? undefined : this.getOrTryNewNode(this.node.parent);
+        }
+
+        private extraFilter(shouldSkip: boolean) {
+            return shouldSkip ? isNotExtra : alwaysReturnsTrue;
+        }
+
+        *yieldAncestors() {
+            let ancestor = this.parent;
+            while (ancestor) {
+                yield ancestor;
+                ancestor = ancestor.parent;
+            }
+            return;
+        }
+
+        hasDescendant(definition: Definition): boolean {
+            for (let ancestor of definition.yieldAncestors()) {
+                if (ancestor.id === this.id) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        *yieldChildren(skipExtras: boolean = true) {
+            for (let child of this.children(skipExtras)) {
                 yield child;
             }
+            return;
         }
-        return;
-    }
 
-    thisOrTerminalChildren(skipExtras: boolean = true): MetaNode[] {
-        return this.isTerminal && skipExtras ? [this as unknown as MetaNode] : this.terminalChildren(skipExtras);
-    }
+        thisOrTerminalChildren(skipExtras: boolean = true): KindaTerminalDefinition[] {
+            let dontSkip = this.extraFilter(skipExtras);
+            return this.isTerminal && dontSkip(this.asMetaNode)
+                ? [this.asMetaNode as TerminalDefinition]
+                : this.terminalChildren(skipExtras);
+        }
 
-    terminalChildren(skipExtras = true): MetaNode[] {
-        return this.children()
-            .filter(child => child.thisOrTerminalChildren())
-            .filter(this.extraFilter(skipExtras));
-    }
+        terminalChildren(skipExtras = true): KindaTerminalDefinition[] {
+            return this.children(skipExtras).flatMap(child => child.thisOrTerminalChildren(skipExtras));
+            // .filter(this.extraFilter(skipExtras));
+        }
 
-    abstract firstTerminalChildren(skipExtras: boolean): MetaNode[];
+        abstract firstTerminalChildren(skipExtras: boolean): KindaTerminalDefinition[];
 
-    private get asMetaNode(): MetaNode {
-        return this as unknown as MetaNode;
-    }
+        private get asMetaNode(): Definition {
+            return this as unknown as Definition;
+        }
 
-    thisOrFirstTerminalChildren(skipExtras = true): MetaNode[] {
-        return this.isTerminal && this.extraFilter(skipExtras)(this.asMetaNode)
-            ? [this.asMetaNode]
-            : this.firstTerminalChildren(skipExtras);
-    }
+        thisOrFirstTerminalChildren(skipExtras = true): KindaTerminalDefinition[] {
+            return this.isTerminal && this.extraFilter(skipExtras)(this.asMetaNode)
+                ? [this.asMetaNode as KindaTerminalDefinition]
+                : this.firstTerminalChildren(skipExtras);
+        }
 
-    *yieldNextSiblings(skipExtras: boolean = true) {
-        let dontSkip = this.extraFilter(skipExtras);
-        for (let siblingNode of TSNode.yieldNextSiblings(this.node)) {
-            let next = MetaNode.tryFrom(siblingNode, this.grammar);
-            if (!!next && dontSkip(next)) {
-                yield next;
+        *yieldPreviousSiblings(skipExtras: boolean = true) {
+            let dontSkip = this.extraFilter(skipExtras);
+            for (let siblingNode of TSNode.yieldPreviousSiblings(this.node)) {
+                let previous = this.getOrTryNewNode(siblingNode);
+                if (!!previous && dontSkip(previous)) {
+                    yield previous;
+                }
             }
         }
-    }
 
-    nextSibling(skipExtras: boolean = true): MetaNode | undefined {
-        return firstOf(this.yieldNextSiblings(skipExtras));
-    }
-
-    // nextNonExtraTerminals(): MetaNode[] {
-    //     let parent = this.parent;
-    //     if (parent?.nodeType === 'list') {
-    //         return parent.nextNonExtraTerminals();
-    //     }
-    //     let nextSibling = this.nextSibling();
-    //     let nexts: MetaNode[] = [];
-    //     if (nextSibling) {
-    //         if (nextSibling?.isExtra) {
-    //             nexts = nextSibling.nextSibling()?.nextNonExtraTerminals() ?? [];
-    //         } else {
-    //             nexts = nextSibling.nextNonExtraTerminals();
-    //         }
-    //     }
-    //     let next = this.nextSibling()?.thisOrFirstTerminalChildren() ?? [];
-    //     if (!!next.length) {
-    //         return next;
-    //     }
-    //     return parent?.nextTerminals() ?? [];
-    // }
-
-    nextTerminals(skipExtras = true): MetaNode[] {
-        let parent = this.parent;
-        if (parent?.nodeType === 'list') {
-            return parent.nextTerminals(skipExtras);
+        previousSibling(skipExtras: boolean = true): Definition | undefined {
+            return firstOf(this.yieldPreviousSiblings(skipExtras));
         }
-        let next = this.nextSibling(skipExtras)?.thisOrFirstTerminalChildren(skipExtras) ?? [];
-        if (!!next.length) {
-            return next;
-        }
-        return parent?.nextTerminals(skipExtras) ?? [];
-    }
 
-    childNodes(): TSNode[] {
-        return this.node.children.filter(isNotNullish).filter(MetaNode.isCompatible);
-    }
-
-    children(skipExtras = true): MetaNode[] {
-        return this.childNodes()
-            .map(child => MetaNode.tryFrom(child, this.grammar))
-            .filter(isNotNullish)
-            .filter(this.extraFilter(skipExtras));
-    }
-}
-
-export class NamedNode extends AbstractMetaNode implements IMetaNode {
-    readonly nodeType = 'named_node';
-    readonly isTerminal = true;
-    private constructor(
-        public node: TSNode, //
-        public grammar: ReGrammar,
-        public name: string,
-        public supertype?: string
-    ) {
-        super();
-    }
-
-    get isExtra() {
-        return this.grammar.extrasNames.has(this.name) || this.grammar.extras.some(rule => rule.matchesTerminalNode(this.node));
-    }
-
-    firstTerminalChildren(skipExtras = true): MetaNode[] {
-        for (let child of this.yieldChildren(skipExtras)) {
-            if (child.isTerminal) {
-                return child.thisOrFirstTerminalChildren(skipExtras);
+        *yieldNextSiblings(skipExtras: boolean = true) {
+            let dontSkip = this.extraFilter(skipExtras);
+            for (let siblingNode of TSNode.yieldNextSiblings(this.node)) {
+                let next = this.getOrTryNewNode(siblingNode);
+                // let next = MetaNode.tryFrom(siblingNode, this.grammar);
+                if (!!next && dontSkip(next)) {
+                    yield next;
+                }
             }
         }
-        return [];
-    }
 
-    static tryFrom(node: TSNode, grammar: ReGrammar): NamedNode | undefined {
-        if (node.type !== 'named_node') {
-            return;
+        nextSibling(skipExtras: boolean = true): Definition | undefined {
+            return firstOf(this.yieldNextSiblings(skipExtras));
         }
-        let name = nameOfNamedNode(node);
-        if (!name) {
-            return;
-        }
-        let supertype = node.childForFieldName('supertype')?.text;
-        return new NamedNode(node, grammar, name, supertype);
-    }
-}
 
-export class AnonymousNode extends AbstractMetaNode implements IMetaNode {
-    readonly nodeType = 'anonymous_node';
-    readonly isTerminal = true;
-    private constructor(
-        public node: TSNode, //
-        public grammar: ReGrammar,
-        public name: string,
-        public isWildcard: boolean
-    ) {
-        super();
-    }
-
-    firstTerminalChildren(skipExtras = true): MetaNode[] {
-        return [];
-    }
-
-    static tryFrom(node: TSNode, grammar: ReGrammar): AnonymousNode | undefined {
-        if (node.type !== 'anonymous_node') {
-            return undefined;
-        }
-        let nameAndWildcard = TSNode.nameOfAnonymousNode(node);
-        if (!nameAndWildcard) {
-            return;
-        }
-        let [name, isWildcard] = nameAndWildcard;
-        return new AnonymousNode(node, grammar, name, isWildcard);
-    }
-}
-
-export class MissingNode extends AbstractMetaNode implements IMetaNode {
-    readonly isTerminal = true;
-    readonly nodeType = 'missing_node';
-    private constructor(
-        public node: TSNode, //
-        public grammar: ReGrammar
-    ) {
-        super();
-    }
-
-    firstTerminalChildren(skipExtras = true): MetaNode[] {
-        return [];
-    }
-
-    static tryFrom(node: TSNode, grammar: ReGrammar): MissingNode | undefined {
-        if (node.type !== 'missing_node') {
-            return undefined;
-        }
-        return new MissingNode(node, grammar);
-    }
-}
-
-export class List extends AbstractMetaNode implements IMetaNode {
-    readonly isTerminal = false;
-    readonly nodeType = 'list';
-    private constructor(
-        public node: TSNode, ///
-        public grammar: ReGrammar
-    ) {
-        super();
-    }
-
-    firstTerminalChildren(skipExtras = false): MetaNode[] {
-        return this.children(skipExtras).flatMap(child => child.thisOrFirstTerminalChildren(skipExtras));
-    }
-
-    static tryFrom(node: TSNode, grammar: ReGrammar): List | undefined {
-        if (node.type !== 'list') {
-            return;
-        }
-        return new List(node, grammar);
-    }
-}
-
-export class Grouping extends AbstractMetaNode implements IMetaNode {
-    readonly isTerminal = false;
-
-    readonly nodeType = 'grouping';
-    private constructor(
-        public node: TSNode, ///
-        public grammar: ReGrammar
-    ) {
-        super();
-    }
-
-    firstTerminalChildren(skipExtras = true): MetaNode[] {
-        for (let child of this.yieldChildren(skipExtras)) {
-            if (child.isTerminal) {
-                return child.thisOrFirstTerminalChildren(skipExtras);
+        nextTerminals(skipExtras = true): KindaTerminal<Definition>[] {
+            let parent = this.parent;
+            if (this.node.parent?.type === 'program') {
+                return [];
             }
+            if (parent?.nodeType === 'list') {
+                return parent.nextTerminals(skipExtras);
+            }
+
+            let next = this.nextSibling(skipExtras)?.thisOrFirstTerminalChildren(skipExtras) ?? [];
+            if (!!next.length) {
+                return next;
+            }
+
+            return parent?.nextTerminals(skipExtras) ?? [];
         }
-        return [];
+
+        get isAnchoredLeft(): boolean {
+            for (let previous of TSNode.yieldPreviousSiblings(this.node)) {
+                if (previous.isExtra) {
+                    continue;
+                }
+                return isAnchor(previous);
+            }
+            return false;
+        }
+
+        get isAnchoredRight(): boolean {
+            for (let next of TSNode.yieldNextSiblings(this.node)) {
+                if (next.isExtra) {
+                    continue;
+                }
+                return isAnchor(next);
+            }
+            return false;
+        }
+
+        childNodes(): TSNode[] {
+            return this.node.children.filter(isNotNullish).filter(Definition.isCompatible);
+        }
+
+        // directChildren(skipExtras = true): MetaNode[] {
+        //     return this.childNodes()
+        //         .map(child => MetaNode.tryFrom(child, this.grammar))
+        //         .filter(isNotNullish)
+        //         .filter(this.extraFilter(skipExtras));
+        // }
+
+        children(skipExtras = true): Definition[] {
+            return this.childNodes()
+                .map(child => this.getOrTryNewNode(child))
+                .filter(isNotNullish)
+                .filter(this.extraFilter(skipExtras));
+        }
+
+        abstract format(): string;
+        private getOrTryNewNode(node: TSNode): Definition | undefined {
+            return this.queryFile?.getOrTryNew(node) ?? Definition.tryFrom(node, this.grammar);
+        }
     }
 
-    static tryFrom(node: TSNode, grammar: ReGrammar): Grouping | undefined {
-        if (node.type !== 'grouping') {
-            return;
+    export class NamedNode extends AbstractDefinition {
+        readonly nodeType = 'named_node';
+        readonly isTerminal = true;
+        readonly terminality = Terminality.PseudoTerminal;
+
+        private constructor(
+            public node: TSNode, //
+            readonly _queryFileOrGrammar: QueryFile | QueryGrammar,
+            public name: string,
+            public supertype?: string
+        ) {
+            super();
         }
-        return new Grouping(node, grammar);
+
+        get isWildcard(): boolean {
+            return this.name === '_';
+        }
+
+        get isExtra() {
+            return (
+                this.grammar.extrasNames.has(this.name) || this.grammar.extras.some(rule => rule.matchesTerminalNode(this.node))
+            );
+        }
+
+        get isRoot(): boolean {
+            return this.grammar.getByName(this.name).some(rule => rule.id === 0);
+        }
+
+        firstTerminalChildren(skipExtras = true): KindaTerminalDefinition[] {
+            for (let child of this.yieldChildren(skipExtras)) {
+                if (child.isTerminal) {
+                    return child.thisOrFirstTerminalChildren(skipExtras);
+                }
+            }
+            return [];
+        }
+
+        static tryFrom(node: TSNode, queryFileOrGrammar: QueryFile | QueryGrammar): NamedNode | undefined {
+            if (node.type !== 'named_node') {
+                return;
+            }
+            let name = nameOfNamedNode(node);
+            if (!name) {
+                return;
+            }
+            let supertype = node.childForFieldName('supertype')?.text;
+            return new NamedNode(node, queryFileOrGrammar, name, supertype);
+        }
+        format(): string {
+            return `(${this.name})`;
+        }
+    }
+
+    export class AnonymousNode extends AbstractDefinition {
+        readonly nodeType = 'anonymous_node';
+        readonly isTerminal = true;
+        readonly terminality = Terminality.Terminal;
+        private constructor(
+            public node: TSNode, //
+            readonly _queryFileOrGrammar: QueryFile | QueryGrammar,
+            public name: string,
+            public isWildcard: boolean
+        ) {
+            super();
+        }
+
+        firstTerminalChildren(skipExtras = true): KindaTerminalDefinition[] {
+            return [];
+        }
+
+        static tryFrom(node: TSNode, queryFileOrGrammar: QueryFile | QueryGrammar): AnonymousNode | undefined {
+            if (node.type !== 'anonymous_node') {
+                return undefined;
+            }
+            let nameAndWildcard = TSNode.nameOfAnonymousNode(node);
+            if (!nameAndWildcard) {
+                return;
+            }
+            let [name, isWildcard] = nameAndWildcard;
+            return new AnonymousNode(node, queryFileOrGrammar, name, isWildcard);
+        }
+
+        format(): string {
+            return this.isWildcard ? '_' : `"${this.name}"`;
+        }
+    }
+
+    export class MissingNode extends AbstractDefinition {
+        readonly isTerminal = true;
+        readonly nodeType = 'missing_node';
+        readonly terminality = Terminality.Terminal; // NOTE this will change later
+        private constructor(
+            public node: TSNode, //
+            readonly _queryFileOrGrammar: QueryFile | QueryGrammar
+        ) {
+            super();
+        }
+
+        firstTerminalChildren(skipExtras = true): KindaTerminalDefinition[] {
+            return [];
+        }
+
+        static tryFrom(node: TSNode, queryFileOrGrammar: QueryFile | QueryGrammar): MissingNode | undefined {
+            if (node.type !== 'missing_node') {
+                return undefined;
+            }
+            return new MissingNode(node, queryFileOrGrammar);
+        }
+
+        format(): string {
+            return '(MISSING)';
+        }
+    }
+
+    export class List extends AbstractDefinition {
+        readonly isTerminal = false;
+        readonly nodeType = 'list';
+        readonly terminality = Terminality.NonTerminal;
+        private constructor(
+            public node: TSNode, ///
+            readonly _queryFileOrGrammar: QueryFile | QueryGrammar
+        ) {
+            super();
+        }
+
+        firstTerminalChildren(skipExtras = false): KindaTerminalDefinition[] {
+            return this.children(skipExtras).flatMap(child => child.thisOrFirstTerminalChildren(skipExtras));
+        }
+
+        static tryFrom(node: TSNode, queryFileOrGrammar: QueryFile | QueryGrammar): List | undefined {
+            if (node.type !== 'list') {
+                return;
+            }
+            return new List(node, queryFileOrGrammar);
+        }
+        format(): string {
+            return `[...]`;
+        }
+    }
+
+    export class Grouping extends AbstractDefinition {
+        readonly isTerminal = false;
+        readonly terminality = Terminality.NonTerminal;
+
+        readonly nodeType = 'grouping';
+        private constructor(
+            public node: TSNode, ///
+            readonly _queryFileOrGrammar: QueryFile | QueryGrammar
+        ) {
+            super();
+        }
+
+        firstTerminalChildren(skipExtras = true): KindaTerminalDefinition[] {
+            for (let child of this.yieldChildren(skipExtras)) {
+                if (child.isTerminal) {
+                    return child.thisOrFirstTerminalChildren(skipExtras);
+                }
+            }
+            return [];
+        }
+
+        static tryFrom(node: TSNode, queryFileOrGrammar: QueryFile | QueryGrammar): Grouping | undefined {
+            if (node.type !== 'grouping') {
+                return;
+            }
+            return new Grouping(node, queryFileOrGrammar);
+        }
+        format(): string {
+            return '(...)';
+        }
+    }
+
+    export class FieldDefinition extends AbstractDefinition {
+        readonly isTerminal = true;
+        readonly terminality = Terminality.PseudoTerminal;
+
+        readonly nodeType = 'field_definition';
+        private constructor(
+            public node: TSNode, ///
+            readonly _queryFileOrGrammar: QueryFile | QueryGrammar,
+            public name: string
+        ) {
+            super();
+        }
+
+        firstTerminalChildren(skipExtras = true): KindaTerminalDefinition[] {
+            return []; // TODO
+        }
+
+        get value(): Definition | undefined {
+            return firstOf(this.children());
+        }
+
+        // terminalChildren(): MetaNode[] {
+        //     return []; // TODO
+        // }
+
+        static tryFrom(node: TSNode, queryFileOrGrammar: QueryFile | QueryGrammar): FieldDefinition | undefined {
+            if (node.type !== 'field_definition') {
+                return;
+            }
+            let name = FieldName.fromNode(node);
+            if (!name) {
+                return;
+            }
+            return new FieldDefinition(node, queryFileOrGrammar, name);
+        }
+        format(): string {
+            return `${this.name}: ${firstOf(this.children())?.format() ?? '...'}`;
+        }
     }
 }
 
-export class FieldDefinition extends AbstractMetaNode implements IMetaNode {
-    readonly isTerminal = false;
+export const NamedNode = Definition.NamedNode;
+export const AnonymousNode = Definition.AnonymousNode;
+export const MissingNode = Definition.MissingNode;
+export const List = Definition.List;
+export const Grouping = Definition.Grouping;
+export const FieldDefinition = Definition.FieldDefinition;
 
-    readonly nodeType = 'field_definition';
-    private constructor(
-        public node: TSNode, ///
-        public grammar: ReGrammar,
-        public name: string
-    ) {
-        super();
-    }
-
-    firstTerminalChildren(skipExtras = true): MetaNode[] {
-        return []; // TODO
-    }
-
-    // terminalChildren(): MetaNode[] {
-    //     return []; // TODO
-    // }
-
-    static tryFrom(node: TSNode, grammar: ReGrammar): FieldDefinition | undefined {
-        if (node.type !== 'field_definition') {
-            return;
-        }
-        let name = FieldName.fromNode(node);
-        if (!name) {
-            return;
-        }
-        return new FieldDefinition(node, grammar, name);
-    }
-}
+export default Definition;

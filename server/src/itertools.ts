@@ -1,5 +1,6 @@
 import { isGeneratorFunction, isSet } from 'util/types';
 import { castUnchecked, Predicate } from './predicates';
+import { Identifiable } from './untitled';
 
 export type PairOf<T> = [T, T];
 export type PairsOf<T> = Iterable<PairOf<T>>;
@@ -17,6 +18,23 @@ export function firstOf<T>(iterable: Iterable<T>): T | undefined {
         return item;
     }
     return;
+}
+
+export function IDof<T extends Identifiable>(identifiable: T): number {
+    return identifiable.id;
+}
+
+export function wrap<T>(object: T | undefined): T[] {
+    return !object ? [] : [object];
+}
+
+export function countUniqueIDs<T extends { id: number }>(items: T[]): number {
+    return new Set(items.map(IDof)).size;
+}
+
+export function uniqueByID<T extends { id: number }>(items: T[]): T[] {
+    let seen: Set<number> = new Set();
+    return items.filter(item => !seen.has(item.id) && seen.add(item.id));
 }
 
 export function lastOf<T>(array: T[]): T | undefined {
@@ -187,4 +205,68 @@ export class IterUtil<T> {
             })()
         );
     }
+}
+// function nextImmediateDefinitions(node: TSNode): Set<number> {
+//     // let next = new Set<number>();
+//     if (!TSNode.isDefinitionChild(node)) {
+//         return new Set<number>();
+//     }
+//     switch (node.parent?.type) {
+//         case 'list':
+//             return nextImmediateDefinitions(node.parent);
+//         case 'grouping':
+//             let next = node.nextSibling ?? undefined;
+//             while (next) {
+//                 if (TSNode.isDefinitionChild(next)) {
+//                     return new Set([next.id]);
+//                 }
+//             }
+//             return nextImmediateDefinitions(node.parent);
+//     }
+//     switch (node.type) {
+//         case 'named_node':
+//             break;
+//         case 'list':
+//             break;
+//         case 'grouping':
+//             break;
+//         case 'anonymous_node':
+//             break;
+//         case 'named_node':
+//             break;
+//     }
+//     return next;
+// }
+
+export class MaxIterations {
+    count: number = 0;
+    constructor(public max: number) {
+        if (max < this.count) {
+            throw 'max < this.count';
+        }
+    }
+
+    get ok(): boolean {
+        if (this.count < this.max) {
+            this.count += 1;
+            return true;
+        }
+        return false;
+    }
+}
+export class Counter {
+    count = 0;
+    next(): number {
+        let next_ = this.count;
+        this.count += 1;
+        return next_;
+    }
+}
+export function divy<T>(iterable: Iterable<T>, fn: (arg: T) => boolean): [T[], T[]] {
+    let trues: T[] = [];
+    let falses: T[] = [];
+    for (let item of iterable) {
+        (fn(item) && trues.push(item)) || falses.push(item);
+    }
+    return [trues, falses];
 }

@@ -227,3 +227,6 @@ export function _formatTree(tree: wts.Tree): string {
     }
     return lines.join('\n');
 }
+export function alwaysReturnsTrue(arg: any): true {
+    return true;
+}

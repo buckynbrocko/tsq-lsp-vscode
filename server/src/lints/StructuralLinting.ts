@@ -1,10 +1,12 @@
 // import { Predicate } from '../formatting/Formattable';
 import { Dict } from '../Dict';
+import { Grammar, GrammarJSON } from '../Grammar';
+import { MaxIterations } from '../itertools';
 import { Identifier, nameOfNamedNode } from '../junk_drawer';
 import { isDefined, isNotNullish, isType } from '../predicates';
 import { TSNode } from '../reexports';
+import { RuleJSON } from '../RuleJSON';
 import { FieldName } from '../typeChecking';
-import { Grammar, Rule, TSQGrammar } from '../untitled';
 
 type ToDo<T = any> = any;
 export type StructuralDiagnostic = ToDo;
@@ -28,7 +30,6 @@ export type Branching = Grouping | List | NamedNode;
 type NodeMap = Dict<number, TSNode>;
 type NodeRoutes = Dict<number, Set<number>>;
 
-
 export namespace NodeMap {
     export function fromNode(node_: TSNode): NodeMap {
         let map: NodeMap = new Dict();
@@ -41,56 +42,6 @@ export namespace NodeMap {
             queue.push(...node.children.filter(isNotNullish));
         }
         return map;
-    }
-}
-
-
-// function nextImmediateDefinitions(node: TSNode): Set<number> {
-//     // let next = new Set<number>();
-//     if (!TSNode.isDefinitionChild(node)) {
-//         return new Set<number>();
-//     }
-//     switch (node.parent?.type) {
-//         case 'list':
-//             return nextImmediateDefinitions(node.parent);
-//         case 'grouping':
-//             let next = node.nextSibling ?? undefined;
-//             while (next) {
-//                 if (TSNode.isDefinitionChild(next)) {
-//                     return new Set([next.id]);
-//                 }
-//             }
-//             return nextImmediateDefinitions(node.parent);
-//     }
-//     switch (node.type) {
-//         case 'named_node':
-//             break;
-//         case 'list':
-//             break;
-//         case 'grouping':
-//             break;
-//         case 'anonymous_node':
-//             break;
-//         case 'named_node':
-//             break;
-//     }
-//     return next;
-// }
-
-export class MaxIterations {
-    count: number = 0;
-    constructor(public max: number) {
-        if (max < this.count) {
-            throw 'max < this.count';
-        }
-    }
-
-    get ok(): boolean {
-        if (this.count < this.max) {
-            this.count += 1;
-            return true;
-        }
-        return false;
     }
 }
 
@@ -684,11 +635,11 @@ function definitionOrAnchorChildren(node: TSNode): TSNode[] {
 const isDefitionNode = isType('anonymous_node', 'field_definition', 'grouping', 'list', 'named_node', 'predicate');
 const isDefitionOrAnchorNode = isType('anonymous_node', 'field_definition', 'grouping', 'list', 'named_node', 'predicate', '.');
 
-function analyzeProgramNode(node: TSNode, grammar: TSQGrammar): StructuralDiagnostic[] {
+function analyzeProgramNode(node: TSNode, grammar: Grammar): StructuralDiagnostic[] {
     return definitionChildren(node).flatMap(child => analyzeDefinition(child, grammar));
 }
 
-function analyzeDefinition(definition: TSNode, grammar: TSQGrammar): StructuralDiagnostic[] {
+function analyzeDefinition(definition: TSNode, grammar: Grammar): StructuralDiagnostic[] {
     let diagnostics: StructuralDiagnostic[] = [];
     switch (definition.type) {
         case 'named_node':
@@ -722,7 +673,7 @@ function analyzeDefinition(definition: TSNode, grammar: TSQGrammar): StructuralD
     return diagnostics;
 }
 
-function analyzeNamedNode(node: TSNode, grammar: TSQGrammar): StructuralDiagnostic[] {
+function analyzeNamedNode(node: TSNode, grammar: Grammar): StructuralDiagnostic[] {
     let diagnostics: StructuralDiagnostic[] = [];
     let name = nameOfNamedNode(node);
     let rule = grammar.resolveRuleFor(name);
@@ -739,7 +690,7 @@ function analyzeNamedNode(node: TSNode, grammar: TSQGrammar): StructuralDiagnost
     return diagnostics;
 }
 
-function NamedNodeWithRule(name: string, node: TSNode, rule: Rule, grammar: TSQGrammar): StructuralDiagnostic[] {
+function NamedNodeWithRule(name: string, node: TSNode, rule: RuleJSON, grammar: Grammar): StructuralDiagnostic[] {
     let diagnostics: StructuralDiagnostic[] = [];
     switch (rule.type) {
         case 'PATTERN':
@@ -767,8 +718,8 @@ function NamedNodeWithRule(name: string, node: TSNode, rule: Rule, grammar: TSQG
 function analyzeNamedNodeChildrenWithRule(
     name: string,
     children: TSNode[],
-    rule: Rule,
-    grammar: TSQGrammar
+    rule: RuleJSON,
+    grammar: Grammar
 ): StructuralDiagnostic[] {
     let diagnostics: StructuralDiagnostic = [];
     switch (rule.type) {
@@ -793,11 +744,15 @@ function analyzeNamedNodeChildrenWithRule(
     return diagnostics;
 }
 
-function analyzeChildrenWithSequence(children: TSNode[], sequence: Rule.Sequence, grammar: TSQGrammar): StructuralDiagnostic[] {
+function analyzeChildrenWithSequence(
+    children: TSNode[],
+    sequence: RuleJSON.Sequence,
+    grammar: Grammar
+): StructuralDiagnostic[] {
     return []; // TODO
 }
 
-function analyzeChildWithChoice(child: TSNode, choice: Rule.Choice, grammar: TSQGrammar): StructuralDiagnostic[] {
+function analyzeChildWithChoice(child: TSNode, choice: RuleJSON.Choice, grammar: Grammar): StructuralDiagnostic[] {
     for (let member of choice.members) {
         switch (member.type) {
             // case 'CHOICE':
@@ -822,7 +777,7 @@ function analyzeChildWithChoice(child: TSNode, choice: Rule.Choice, grammar: TSQ
     return []; // TODO
 }
 
-function nodeMatchesRule(node: TSNode, rule: Rule, grammar: TSQGrammar): boolean {
+function nodeMatchesRule(node: TSNode, rule: RuleJSON, grammar: Grammar): boolean {
     switch (rule.type) {
         case 'BLANK':
             return false;
@@ -851,7 +806,7 @@ function nodeMatchesRule(node: TSNode, rule: Rule, grammar: TSQGrammar): boolean
     }
 }
 
-function nodeMatchesStringOrPatternRule(node: TSNode, rule: Rule.String | Rule.Pattern): boolean {
+function nodeMatchesStringOrPatternRule(node: TSNode, rule: RuleJSON.String | RuleJSON.Pattern): boolean {
     if (node.type !== 'anonymous_node') {
         return false;
     }
@@ -869,7 +824,7 @@ function nodeMatchesStringOrPatternRule(node: TSNode, rule: Rule.String | Rule.P
     return rule.type === 'STRING' ? stringContents === rule.value : new RegExp(rule.value).test(stringContents);
 }
 
-function nodeMatchesSymbolRule(node: TSNode, rule: Rule.Symbol, grammar: TSQGrammar): boolean {
+function nodeMatchesSymbolRule(node: TSNode, rule: RuleJSON.Symbol, grammar: Grammar): boolean {
     let name = nameOfNamedNode(node);
     if (!name) {
         return false;
@@ -878,22 +833,22 @@ function nodeMatchesSymbolRule(node: TSNode, rule: Rule.Symbol, grammar: TSQGram
     if (!grammar.ruleIsHidden(rule)) {
     }
 
-    let rule_: Rule | undefined = grammar.ruleFor(rule.name);
+    let rule_: RuleJSON | undefined = grammar.ruleFor(rule.name);
     if (!rule_) {
         console.error(`failed to find SYMBOL rule "${rule.name}"`);
         return false; // ???
     }
     return nodeMatchesRule(node, rule, grammar);
 }
-function nodeMatchesAliasRule(node: TSNode, rule: Rule.Alias, grammar: TSQGrammar): boolean {
+function nodeMatchesAliasRule(node: TSNode, rule: RuleJSON.Alias, grammar: Grammar): boolean {
     return nodeMatchesRule(node, rule.content, grammar); //? Is this any different?
 }
 
-function nodeMatchesFieldRule(node: TSNode, rule: Rule.Field, grammar: TSQGrammar): boolean {
+function nodeMatchesFieldRule(node: TSNode, rule: RuleJSON.Field, grammar: Grammar): boolean {
     return false;
 }
 
-function lintNode(node: TSNode, grammar: TSQGrammar): any[] {
+function lintNode(node: TSNode, grammar: Grammar): any[] {
     let diagnostics: any[] = [];
     if (!isDefitionNode(node) && node.type !== 'program') {
         return diagnostics;
@@ -909,16 +864,16 @@ function lintNode(node: TSNode, grammar: TSQGrammar): any[] {
     return diagnostics;
 }
 
-function evaluateNodeWithRule(node: TSNode, rule: Rule, grammar: TSQGrammar): any[] {
+function evaluateNodeWithRule(node: TSNode, rule: RuleJSON, grammar: Grammar): any[] {
     return []; // TODO
 }
 
-function lintNamedNode(node: TSNode, grammar: TSQGrammar): any[] {
+function lintNamedNode(node: TSNode, grammar: Grammar): any[] {
     let diagnostics: any[] = [];
     let nameNode = node.childForFieldName('name');
     const name: string | undefined = Identifier.ofNode(node)?.text;
 
-    const rule = Rule.withName(name, grammar.grammar);
+    const rule = RuleJSON.withName(name, grammar.grammar);
 
     if (!rule && name !== '_') {
         diagnostics.push(`unrecognized node type "${name}"`);
@@ -954,7 +909,7 @@ function lintNamedNode(node: TSNode, grammar: TSQGrammar): any[] {
     return diagnostics;
 }
 
-function definitionMatchesRule(definition: TSNode, rule: Rule, grammar: Grammar): boolean {
+function definitionMatchesRule(definition: TSNode, rule: RuleJSON, grammar: GrammarJSON): boolean {
     if (definition.type === 'list') {
         return definitionChildren(definition).some(child => definitionMatchesRule(child, rule, grammar));
     }
@@ -1023,7 +978,7 @@ function mcguffinSequence(sequence: any[]): any[] {
     return diagnostics;
 }
 
-function mcguffinDefinition(definition: Definition, grammar: TSQGrammar): StructuralDiagnostic[] {
+function mcguffinDefinition(definition: Definition, grammar: Grammar): StructuralDiagnostic[] {
     let diagnostics: StructuralDiagnostic[] = [];
     switch (definition.type) {
         case 'AnonymousNode':
@@ -1049,7 +1004,7 @@ function mcguffinDefinition(definition: Definition, grammar: TSQGrammar): Struct
     return diagnostics;
 }
 
-function recognizeDefinitions(grammar: TSQGrammar, definitions: Pattern[]): StructuralDiagnostic[] {
+function recognizeDefinitions(grammar: Grammar, definitions: Pattern[]): StructuralDiagnostic[] {
     return (
         definitions
             .filter(isNotAnchor)
@@ -1060,7 +1015,7 @@ function recognizeDefinitions(grammar: TSQGrammar, definitions: Pattern[]): Stru
     );
 }
 
-function mcguffinDefinitionOrAnchorSequence(rule: Rule, grammar: TSQGrammar, definitions: Pattern[]): StructuralDiagnostic[] {
+function mcguffinDefinitionOrAnchorSequence(rule: RuleJSON, grammar: Grammar, definitions: Pattern[]): StructuralDiagnostic[] {
     let diagnostics: StructuralDiagnostic[] = [];
     const unrecognized = recognizeDefinitions(grammar, definitions);
     if (!!unrecognized.length) {
@@ -1070,7 +1025,7 @@ function mcguffinDefinitionOrAnchorSequence(rule: Rule, grammar: TSQGrammar, def
     return diagnostics;
 }
 
-function mcguffinNamedNode(node: NamedNode, grammar: TSQGrammar): StructuralDiagnostic[] {
+function mcguffinNamedNode(node: NamedNode, grammar: Grammar): StructuralDiagnostic[] {
     let diagnostics: StructuralDiagnostic[] = [];
     let unrecognized = node.children.flatMap(child => {});
     if (!!unrecognized.length) {
@@ -1096,7 +1051,7 @@ iterate children and validate:
 //     let childValuesValidationResult = validateChildrenValues();
 // }
 
-function validateChildrenIdentity(children: Pattern[], grammar: TSQGrammar): any[] {
+function validateChildrenIdentity(children: Pattern[], grammar: Grammar): any[] {
     let diagnostics: any[] = [];
     for (let child of children.filter(isNotAnchor)) {
         if (Array.isArray(child)) {

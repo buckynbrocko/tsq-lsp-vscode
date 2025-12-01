@@ -17,6 +17,13 @@ export class Dict<K extends Index, V> extends Map<K, V> {
         return [...this.values()].flatMap(callbackfn);
     }
 
+    filterByKey<P extends K = any>(
+        predicate: (value: [K, V], index: number, array: [K, V][]) => value is [P, V],
+        thisArg?: any
+    ): Dict<P, V> {
+        return new Dict(Array.from(this.entries()).filter(predicate, thisArg));
+    }
+
     filterByValue<P extends V = any>(
         predicate: (value: [K, V], index: number, array: [K, V][]) => value is [K, P],
         thisArg?: any

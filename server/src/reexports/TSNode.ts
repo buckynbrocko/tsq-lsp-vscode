@@ -18,6 +18,15 @@ export namespace TSNode {
         return node;
     }
 
+    export function* yieldPreviousSiblings(node: TSNode) {
+        let previous = node.previousSibling ?? undefined;
+        while (!!previous) {
+            yield previous;
+            previous = previous.previousSibling ?? undefined;
+        }
+        return;
+    }
+
     export function* yieldNextSiblings(node: TSNode) {
         let next = node.nextSibling ?? undefined;
         while (!!next) {
@@ -40,11 +49,15 @@ export namespace TSNode {
         }
     }
 
+    function unescapeString(string_: string): string {
+        return JSON.parse('"' + string_ + '"');
+    }
+
     export function stringContent(node?: TSNode): string | undefined {
         switch (node?.type) {
             case 'string':
                 let content = node.firstNamedChild ?? undefined;
-                return content?.type === 'string_content' ? content.text : undefined;
+                return content?.type === 'string_content' ? unescapeString(content.text) : undefined;
             case 'anonymous_node':
                 return stringContent(node.childForFieldName('name') ?? undefined);
             default:
