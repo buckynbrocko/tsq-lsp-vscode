@@ -1,6 +1,6 @@
 import { isGeneratorFunction, isSet } from 'util/types';
+import { Identifiable } from './junk_drawer';
 import { castUnchecked, Predicate } from './predicates';
-import { Identifiable } from './untitled';
 
 export type PairOf<T> = [T, T];
 export type PairsOf<T> = Iterable<PairOf<T>>;

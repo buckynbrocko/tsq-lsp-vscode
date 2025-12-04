@@ -1,5 +1,7 @@
 import { GrammarJSON } from './Grammar';
-import { CartesianSpread, TerminalRule } from './untitled';
+import { Identifiable } from './junk_drawer';
+import { Terminality } from './Terminality';
+import { CartesianSpread } from './untitled';
 
 export type RuleJSON =
     | RuleJSON.Blank
@@ -35,7 +37,7 @@ export namespace RuleJSON {
         'PREC_LEFT',
         'PREC_RIGHT',
         'PREC_DYNAMIC',
-    ];
+    ] as const;
 
     export type Blank = {
         type: 'BLANK';
@@ -106,6 +108,35 @@ export namespace RuleJSON {
         value: number | string;
         content: RuleJSON;
     };
+}
+export type HasRuleType<T extends RuleJSON['type'] = RuleJSON['type']> = { type: T };
+export namespace HasRuleType {
+    export function terminalityOf(rule?: HasRuleType): Terminality | undefined {
+        switch (rule?.type) {
+            case undefined:
+                return undefined;
+            case 'BLANK':
+            case 'STRING':
+            case 'PATTERN':
+                return Terminality.Terminal;
+            case 'SYMBOL':
+            case 'TOKEN':
+            case 'IMMEDIATE_TOKEN':
+                return Terminality.PseudoTerminal;
+            case 'SEQ':
+            case 'CHOICE':
+            case 'ALIAS':
+            case 'REPEAT':
+            case 'REPEAT1':
+            case 'RESERVED':
+            case 'FIELD':
+            case 'PREC':
+            case 'PREC_LEFT':
+            case 'PREC_RIGHT':
+            case 'PREC_DYNAMIC':
+                return Terminality.NonTerminal;
+        }
+    }
 }
 
 export namespace RuleJSON {
@@ -196,16 +227,6 @@ export namespace RuleJSON {
 
     export function isHidden(grammar: GrammarJSON, rule: RuleJSON): boolean {
         return (hasName(rule) && rule.name.startsWith('_')) || isSupertype(grammar, rule);
-    }
-
-    export function isTerminal(rule: RuleJSON): rule is TerminalRule {
-        switch (rule.type) {
-            case 'BLANK':
-            case 'STRING':
-            case 'PATTERN':
-                return true;
-        }
-        return false;
     }
 
     export function withName(name: string | undefined, grammar: GrammarJSON): RuleJSON | undefined {
@@ -311,3 +332,9 @@ export namespace Stub {
     }
 }
 export default RuleJSON;
+export type IdentifiableStub = Identifiable<Stub>;
+export namespace IdentifiableStub {
+    export function from(rule: RuleJSON, id: number): IdentifiableStub {
+        return Identifiable.from(Stub.fromRuleJSON(rule), id);
+    }
+}

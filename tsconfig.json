@@ -8,6 +8,8 @@
         "rootDir": "src",
         "sourceMap": true,
         "noUncheckedIndexedAccess": true,
+        "allowUnusedLabels": false
+        // "noUnusedLocals": true
         // "noImplicitReturns": true
         // "skipLibCheck": true
     },

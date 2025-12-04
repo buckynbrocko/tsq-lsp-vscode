@@ -230,3 +230,31 @@ export function _formatTree(tree: wts.Tree): string {
 export function alwaysReturnsTrue(arg: any): true {
     return true;
 }
+
+export abstract class AsArray {
+    get asArray(): (typeof this)[] {
+        return [this];
+    }
+}
+export type Identifiable<T = unknown> = T & { id: number };
+export namespace Identifiable {
+    export function from<T extends {}>(object: T, id: number): Identifiable<T> {
+        return { ...object, id };
+    }
+
+    export function tryFrom<T extends {}>(object: T | undefined, id: number | undefined): Identifiable<T> | undefined {
+        return object === undefined || id === undefined ? undefined : from(object, id);
+    }
+
+    export function reduce<T extends {}>(object: undefined): undefined;
+    export function reduce<T extends {}>(object: number | Identifiable<T>): number;
+    export function reduce<T extends {}>(object: undefined | number | Identifiable<T>): number | undefined;
+    export function reduce<T extends {}>(object: undefined | number | Identifiable<T>): number | undefined {
+        if (typeof object === 'number') {
+            return object satisfies number;
+        } else if (object) {
+            return object.id;
+        }
+        return object as undefined;
+    }
+}

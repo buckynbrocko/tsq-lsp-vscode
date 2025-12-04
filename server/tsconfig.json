@@ -10,7 +10,10 @@
         "rootDir": ".",
         "noUncheckedIndexedAccess": true,
         "esModuleInterop": true,
-        "noImplicitReturns": true
+        "noImplicitReturns": true,
+        "noUnusedLocals": true,
+        "noPropertyAccessFromIndexSignature": true
+        // "allowUnusedLabels": false
         // "noErrorTruncation": true
         // "isolatedModules": true
 

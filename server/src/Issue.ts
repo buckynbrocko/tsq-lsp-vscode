@@ -1,4 +1,6 @@
-import Definition from './MetaNode';
+// import from './Definition';
+import { Definition, FieldDefinition, NamedNode } from './Definition';
+import { DefinitionChild } from './DefinitionChild';
 import { KindaTerminal, PseudoTerminal } from './Terminality';
 
 export type Issue =
@@ -12,16 +14,17 @@ export type Issue =
     | InvalidFieldValue
     | InvalidField;
 export namespace Issue {
-    export function fromInvalidNode(node: KindaTerminal<Definition>, parent?: Definition): Issue {
+    export function fromInvalidNode(node: KindaTerminal<DefinitionChild>, parent?: Definition): Issue {
         switch (node.nodeType) {
             case 'field_definition':
-                if (!!parent && parent instanceof Definition.NamedNode) {
+                if (!!parent && parent instanceof NamedNode) {
                     return new InvalidNamedNodeFieldName(node, parent);
                 }
                 return new InvalidField(node);
             case 'named_node':
             case 'anonymous_node':
             case 'missing_node':
+            case '.':
                 if (!!parent) {
                     return new InvalidChildNode(node, parent);
                 }
@@ -29,9 +32,9 @@ export namespace Issue {
         }
     }
 
-    export function fromUnexpectedNode(child: KindaTerminal<Definition>, parent?: PseudoTerminal<Definition>): Issue {
-        if (parent instanceof Definition.FieldDefinition) {
-            return new UnexpectedFieldValueChild(parent, child);
+    export function fromUnexpectedNode(child: KindaTerminal<DefinitionChild>, parent?: PseudoTerminal<Definition>): Issue {
+        if (parent instanceof FieldDefinition) {
+            return new UnexpectedFieldValueChild(child, parent);
         }
         if (parent) {
             return new UnexpectedChildNode(child, parent);
@@ -71,7 +74,7 @@ export class NonDescript extends IssueABC {
 }
 
 export class InvalidNode extends IssueABC {
-    constructor(readonly node: Definition) {
+    constructor(readonly node: DefinitionChild) {
         super();
     }
 
@@ -81,7 +84,7 @@ export class InvalidNode extends IssueABC {
 }
 
 export class UnexpectedNode extends IssueABC {
-    constructor(readonly node: Definition) {
+    constructor(readonly node: DefinitionChild) {
         super();
     }
 
@@ -91,7 +94,7 @@ export class UnexpectedNode extends IssueABC {
 }
 
 export class UnexpectedChildNode extends IssueABC {
-    constructor(readonly child: KindaTerminal<Definition>, readonly parent: PseudoTerminal<Definition>) {
+    constructor(readonly child: KindaTerminal<DefinitionChild>, readonly parent: PseudoTerminal<DefinitionChild>) {
         super();
     }
 
@@ -101,7 +104,7 @@ export class UnexpectedChildNode extends IssueABC {
 }
 
 export class UnexpectedFieldValueChild extends IssueABC {
-    constructor(readonly field: Definition.FieldDefinition, readonly child: Definition) {
+    constructor(readonly child: DefinitionChild, readonly field: FieldDefinition) {
         super();
     }
 
@@ -111,7 +114,7 @@ export class UnexpectedFieldValueChild extends IssueABC {
 }
 
 export class InvalidChildNode extends IssueABC {
-    constructor(readonly child: Definition, readonly parent: Definition) {
+    constructor(readonly child: DefinitionChild, readonly parent: Definition) {
         super();
     }
 
@@ -121,7 +124,7 @@ export class InvalidChildNode extends IssueABC {
 }
 
 abstract class FieldIssue extends IssueABC {
-    abstract field: Definition.FieldDefinition;
+    abstract field: FieldDefinition;
     get name(): string {
         return this.field.name;
     }
@@ -132,7 +135,7 @@ abstract class FieldIssue extends IssueABC {
 }
 
 export class InvalidNamedNodeFieldName extends FieldIssue {
-    constructor(readonly field: Definition.FieldDefinition, readonly namedNode: Definition.NamedNode) {
+    constructor(readonly field: FieldDefinition, readonly namedNode: NamedNode) {
         super();
     }
 
@@ -141,7 +144,7 @@ export class InvalidNamedNodeFieldName extends FieldIssue {
     }
 }
 export class InvalidNamedNodeFieldValue extends FieldIssue {
-    constructor(readonly field: Definition.FieldDefinition, readonly namedNode: Definition.NamedNode) {
+    constructor(readonly field: FieldDefinition, readonly namedNode: NamedNode) {
         super();
     }
 
@@ -151,7 +154,7 @@ export class InvalidNamedNodeFieldValue extends FieldIssue {
 }
 
 export class InvalidFieldValue extends FieldIssue {
-    constructor(readonly field: Definition.FieldDefinition) {
+    constructor(readonly field: FieldDefinition) {
         super();
     }
 
@@ -161,7 +164,7 @@ export class InvalidFieldValue extends FieldIssue {
 }
 
 export class InvalidField extends FieldIssue {
-    constructor(readonly field: Definition.FieldDefinition) {
+    constructor(readonly field: FieldDefinition) {
         super();
     }
 

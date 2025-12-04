@@ -1,12 +1,13 @@
 import { single } from 'itertools-ts';
+import { AnonymousNode, FieldDefinition, NamedNode } from './Definition';
+import { DefinitionChild } from './DefinitionChild';
+import { Grammar } from './Grammar';
 import { Counter, firstOf } from './itertools';
-import { nameOfNamedNode } from './junk_drawer';
-import { AnonymousNode, Definition, NamedNode } from './MetaNode';
-import { QueryGrammar } from './QueryGrammar';
+import { Identifiable, nameOfNamedNode } from './junk_drawer';
 import { TSNode } from './reexports';
 import { RuleJSON } from './RuleJSON';
-import { KindaNonTerminal, KindaTerminal, NonTerminal, PseudoTerminal, Terminal, Terminality } from './Terminality';
-import { Identifiable, RuleContext } from './untitled';
+import { HasTerminality, KindaTerminal, Terminality } from './Terminality';
+import { RuleContext } from './untitled';
 
 export type Type = Rule['type'];
 export type Rule =
@@ -43,17 +44,25 @@ class SeenRule {
     }
 }
 
-type TerminalRule = Terminal<Rule>;
-type PseudoTerminalRule = PseudoTerminal<Rule>;
-type NonTerminalRule = NonTerminal<Rule>;
-
 export namespace Rule {
-    export function fromRuleJSON(ruleJSON: RuleJSON, IDs: Counter, grammar: QueryGrammar, name?: string): Rule {
+    export function fromRuleJSON(ruleJSON: RuleJSON, IDs: Counter, grammar: Grammar, name?: string): Rule {
         let rule = _fromRuleJSON(ruleJSON, IDs, grammar);
         grammar.addRule(rule, name);
         return rule;
     }
-    export function _fromRuleJSON(ruleJSON: RuleJSON, IDs: Counter, grammar: QueryGrammar): Rule {
+
+    export function isType<T extends Rule['type']>(rule: Rule, ...types: [T, ...T[]]): rule is Rule & { type: T } {
+        return types.includes(rule.type as T);
+    }
+
+    export function isNotType<T extends Rule['type']>(
+        rule: Rule,
+        ...types: [T, ...T[]]
+    ): rule is Exclude<Rule, Rule & { type: T }> {
+        return !isType(rule, ...types);
+    }
+
+    export function _fromRuleJSON(ruleJSON: RuleJSON, IDs: Counter, grammar: Grammar): Rule {
         switch (ruleJSON.type) {
             case 'BLANK':
                 return Blank.fromRuleJSON(ruleJSON, IDs, grammar);
@@ -94,12 +103,12 @@ export namespace Rule {
     }
 
     namespace ABCs {
-        export abstract class AbstractRule {
+        export abstract class AbstractRule extends HasTerminality {
             public parent?: Rule;
             public previousSibling?: Rule;
             public nextSibling?: Rule;
             abstract readonly id: number;
-            abstract readonly grammar: QueryGrammar;
+            abstract readonly grammar: Grammar;
             abstract terminality: Terminality;
             abstract readonly type: string;
             *yieldAncestorsAscending() {
@@ -112,7 +121,7 @@ export namespace Rule {
             }
 
             abstract matchesTerminalNode(node: TSNode, context?: RuleContext): boolean;
-            abstract matchesMetaNode(node: Definition): boolean;
+            abstract matchesDefinition(node: DefinitionChild): boolean;
 
             abstract firstTerminalDescendants(seen?: SeenRule): KindaTerminal<Rule>[];
 
@@ -138,29 +147,17 @@ export namespace Rule {
                 return this.parent?.nextSibling ?? this.parent?.nextAncester;
             }
 
-            get asTerminal(): Terminal<Rule> | undefined {
-                return Terminality.isTerminal(this.asRule) ? this.asRule : undefined;
+            get isTopLevel(): boolean {
+                return this.grammar.topLevelRules
+                    .valuesArray()
+                    .map(rule => rule.id)
+                    .includes(this.id);
             }
 
-            get asNonTerminal(): NonTerminal<Rule> | undefined {
-                return Terminality.isNonTerminal(this.asRule) ? this.asRule : undefined;
-            }
-
-            get asPseudoTerminal(): PseudoTerminal<Rule> | undefined {
-                return Terminality.isPseudoTerminal(this.asRule) ? this.asRule : undefined;
-            }
-
-            get asKindaTerminal(): KindaTerminal<Rule> | undefined {
-                return this.asTerminal ?? this.asPseudoTerminal;
-            }
-
-            get asKindaNonTerminal(): KindaNonTerminal<Rule> | undefined {
-                return this.asNonTerminal ?? this.asPseudoTerminal;
-            }
-
-            allTerminalSubrulesMatchingTerminalNode(node: TSNode): KindaTerminal<Rule>[] {
-                return this.terminalDescendants().filter(rule => rule.matchesTerminalNode(node));
-            }
+            // get canBeLastRule(): boolean {
+            //     // todo
+            //     return this.nextTerminals().filter(rule => Rule.i)
+            // }
 
             thisOrFirstTerminals(seen: SeenRule = new SeenRule()): KindaTerminal<Rule>[] {
                 if (!seen.filter(this.asRule)) {
@@ -199,13 +196,7 @@ export namespace Rule {
             }
 
             terminalDescendants(seen: SeenRule = new SeenRule()): KindaTerminal<Rule>[] {
-                // seen = seen ?? { stack: [] };
-                // // if (context.stack.map(IDof).includes(this.id)) {
-                // //     return [];
-                // // }
-                // seen.stack.push(this.asRule);
                 let result = this.children.flatMap(child => child.thisOrTerminalDescendants(seen));
-                // .filter(rule => seen.filter(rule));
                 return result;
             }
 
@@ -237,25 +228,19 @@ export namespace Rule {
             }
 
             nextTerminals(seen: SeenRule = new SeenRule()): KindaTerminal<Rule>[] {
-                // if (!this.parent) {
-                //     let [parent, newContext] = RuleContext.popAndCopy(context);
-                //     if (!parent) {
-                //         return [];
-                //     }
-                //     return parent.nextTerminals(newContext);
-                // }
                 if (!this.nextSibling || this.parent instanceof Choice) {
                     return this.parent?.nextTerminals(seen) ?? [];
                 }
                 return this.nextSibling.thisOrFirstTerminals(seen);
             }
 
-            matchesOrContainsTerminalDefinition(node: TSNode, context?: RuleContext): boolean {
-                return this.matchesTerminalNode(node, context) || this.canContainTerminalNode(node, context);
-            }
-
-            canContainTerminalNode(node: TSNode, context?: RuleContext): boolean {
-                return this.children.some(child => child.matchesOrContainsTerminalDefinition(node, context));
+            hasAncestorOfType<T extends Rule['type']>(...types: T[]): boolean {
+                for (let ancestor of this.yieldAncestorsAscending()) {
+                    if (types.includes(ancestor.type as T)) {
+                        return true;
+                    }
+                }
+                return false;
             }
         }
 
@@ -272,7 +257,7 @@ export namespace Rule {
 
         export abstract class RuleWithMembers extends AbstractRule {
             readonly terminality = Terminality.NonTerminal;
-            constructor(public readonly id: number, public readonly grammar: QueryGrammar, public members: Rule[]) {
+            constructor(public readonly id: number, public readonly grammar: Grammar, public members: Rule[]) {
                 super();
                 for (let member of members) {
                     member.parent = this as Rule;
@@ -283,7 +268,7 @@ export namespace Rule {
                 }
             }
 
-            matchesMetaNode(node: Definition): boolean {
+            matchesDefinition(node: DefinitionChild): boolean {
                 return false;
             }
 
@@ -300,7 +285,7 @@ export namespace Rule {
             // readonly terminality = Terminality.NonTerminal;
             constructor(public content: Rule) {
                 super();
-                this.content.parent = this as Rule;
+                this.content.parent = this.asRule;
             }
 
             get children(): Rule[] {
@@ -311,7 +296,7 @@ export namespace Rule {
                 return this.content.thisOrFirstTerminals(seen);
             }
 
-            matchesMetaNode(node: Definition): boolean {
+            matchesDefinition(node: DefinitionChild): boolean {
                 return false;
             }
 
@@ -327,12 +312,12 @@ export namespace Rule {
         readonly type = 'BLANK';
         constructor(
             public readonly id: number, //
-            public readonly grammar: QueryGrammar
+            public readonly grammar: Grammar
         ) {
             super();
         }
 
-        matchesMetaNode(node: Definition): boolean {
+        matchesDefinition(node: DefinitionChild): boolean {
             return this.matchesTerminalNode(node.node);
         }
 
@@ -346,7 +331,7 @@ export namespace Rule {
             }
         }
 
-        static fromRuleJSON(_ruleJSON: RuleJSON.Blank, IDs: Counter, grammar: QueryGrammar): Blank {
+        static fromRuleJSON(_ruleJSON: RuleJSON.Blank, IDs: Counter, grammar: Grammar): Blank {
             return new Blank(IDs.next(), grammar);
         }
     }
@@ -354,20 +339,20 @@ export namespace Rule {
         readonly type = 'STRING';
         constructor(
             public readonly id: number, //
-            public readonly grammar: QueryGrammar,
+            public readonly grammar: Grammar,
             public value: string
         ) {
             super();
         }
-        static fromRuleJSON(string_: RuleJSON.String, IDs: Counter, grammar: QueryGrammar): String {
+        static fromRuleJSON(string_: RuleJSON.String, IDs: Counter, grammar: Grammar): String {
             return new String(IDs.next(), grammar, string_.value);
         }
 
         matchesValue(value: string) {
-            return value === this.value// || value === JSON.parse(value);
+            return value === this.value; // || value === JSON.parse(value);
         }
 
-        matchesMetaNode(node: Definition): boolean {
+        matchesDefinition(node: DefinitionChild): boolean {
             return node instanceof AnonymousNode && (node.isWildcard || this.matchesValue(node.name));
         }
 
@@ -394,7 +379,7 @@ export namespace Rule {
         private _regex?: RegExp;
         constructor(
             public readonly id: number, //
-            public readonly grammar: QueryGrammar,
+            public readonly grammar: Grammar,
             public value: string,
             public flags?: string
         ) {
@@ -413,7 +398,7 @@ export namespace Rule {
             return this._regex;
         }
 
-        static fromRuleJSON(pattern: RuleJSON.Pattern, IDs: Counter, grammar: QueryGrammar): Pattern {
+        static fromRuleJSON(pattern: RuleJSON.Pattern, IDs: Counter, grammar: Grammar): Pattern {
             return new Pattern(IDs.next(), grammar, pattern.value, pattern.flags);
         }
 
@@ -421,7 +406,7 @@ export namespace Rule {
             return this.regex?.test(value) ?? false;
         }
 
-        matchesMetaNode(node: Definition): boolean {
+        matchesDefinition(node: DefinitionChild): boolean {
             return node instanceof AnonymousNode && (node.isWildcard || this.matchesValue(node.name));
         }
 
@@ -436,7 +421,7 @@ export namespace Rule {
         readonly isPopulated: boolean = true;
         constructor(
             public readonly id: number, //
-            public readonly grammar: QueryGrammar,
+            public readonly grammar: Grammar,
             public name: string
         ) {
             super();
@@ -498,13 +483,13 @@ export namespace Rule {
             return this.isUnderscoreHidden || this.isSupertype;
         }
 
-        matchesMetaNode(node: Definition): boolean {
+        matchesDefinition(node: DefinitionChild): boolean {
             if (this.isUnderscoreHidden) {
-                return this.children.some(child => child.matchesMetaNode(node));
+                return this.children.some(child => child.matchesDefinition(node));
             }
             return (
                 node instanceof NamedNode &&
-                (node.isWildcard || node.name === this.name || this.subtypes.some(st => st.matchesMetaNode(node)))
+                (node.isWildcard || node.name === this.name || this.subtypes.some(st => st.matchesDefinition(node)))
             );
         }
 
@@ -528,7 +513,7 @@ export namespace Rule {
             return !this.isSupertype ? [] : this.grammar.getTopLevelRule(this.name)?.thisOrTerminalDescendants() || [];
         }
 
-        static fromRuleJSON(symbol_: RuleJSON.Symbol, IDs: Counter, grammar: QueryGrammar): Symbol {
+        static fromRuleJSON(symbol_: RuleJSON.Symbol, IDs: Counter, grammar: Grammar): Symbol {
             return new Symbol(IDs.next(), grammar, symbol_.name);
         }
     }
@@ -540,7 +525,7 @@ export namespace Rule {
             return firstOf(this.children)?.thisOrFirstTerminals() ?? [];
         }
 
-        static fromRuleJSON(sequence: RuleJSON.Sequence, IDs: Counter, grammar: QueryGrammar): Sequence {
+        static fromRuleJSON(sequence: RuleJSON.Sequence, IDs: Counter, grammar: Grammar): Sequence {
             return new Sequence(
                 IDs.next(),
                 grammar,
@@ -562,7 +547,7 @@ export namespace Rule {
         // nextTerminals(): TSQRule[] {
         //     return this.children.flatMap(child => child.thisOrFirstTerminals());
         // }
-        static fromRuleJSON(choice: RuleJSON.Choice, IDs: Counter, grammar: QueryGrammar): Choice {
+        static fromRuleJSON(choice: RuleJSON.Choice, IDs: Counter, grammar: Grammar): Choice {
             return new Choice(
                 IDs.next(),
                 grammar,
@@ -576,7 +561,7 @@ export namespace Rule {
         readonly terminality = Terminality.PseudoTerminal;
         constructor(
             public readonly id: number, //
-            public readonly grammar: QueryGrammar,
+            public readonly grammar: Grammar,
             public value: string,
             public named: boolean,
             public content: Rule
@@ -584,7 +569,7 @@ export namespace Rule {
             super(content);
         }
 
-        static fromRuleJSON(alias: RuleJSON.Alias, IDs: Counter, grammar: QueryGrammar): Alias {
+        static fromRuleJSON(alias: RuleJSON.Alias, IDs: Counter, grammar: Grammar): Alias {
             return new Alias(IDs.next(), grammar, alias.value, alias.named, Rule.fromRuleJSON(alias.content, IDs, grammar));
         }
 
@@ -616,11 +601,11 @@ export namespace Rule {
             return TSNode.stringContent(node) === this.value;
         }
 
-        matchesMetaNode(node: Definition): boolean {
+        matchesDefinition(node: DefinitionChild): boolean {
             return (
                 (this.named && node instanceof NamedNode && node.name === this.value) ||
                 (!this.named && node instanceof AnonymousNode && (node.isWildcard || node.name === this.value)) ||
-                this.content.matchesMetaNode(node)
+                this.content.matchesDefinition(node)
             );
         }
 
@@ -634,12 +619,12 @@ export namespace Rule {
         readonly terminality = Terminality.NonTerminal;
         constructor(
             public readonly id: number, //
-            public readonly grammar: QueryGrammar,
+            public readonly grammar: Grammar,
             public content: Rule
         ) {
             super(content);
         }
-        static fromRuleJSON(repeat: RuleJSON.Repeat, IDs: Counter, grammar: QueryGrammar): Repeat {
+        static fromRuleJSON(repeat: RuleJSON.Repeat, IDs: Counter, grammar: Grammar): Repeat {
             return new Repeat(IDs.next(), grammar, Rule.fromRuleJSON(repeat.content, IDs, grammar));
         }
     }
@@ -648,12 +633,12 @@ export namespace Rule {
         readonly terminality = Terminality.NonTerminal;
         constructor(
             public readonly id: number, //
-            public readonly grammar: QueryGrammar,
+            public readonly grammar: Grammar,
             public content: Rule
         ) {
             super(content);
         }
-        static fromRuleJSON(repeat1: RuleJSON.Repeat1, IDs: Counter, grammar: QueryGrammar): Repeat1 {
+        static fromRuleJSON(repeat1: RuleJSON.Repeat1, IDs: Counter, grammar: Grammar): Repeat1 {
             return new Repeat1(IDs.next(), grammar, Rule.fromRuleJSON(repeat1.content, IDs, grammar));
         }
     }
@@ -662,13 +647,13 @@ export namespace Rule {
         readonly terminality = Terminality.NonTerminal;
         constructor(
             public readonly id: number, //
-            public readonly grammar: QueryGrammar,
+            public readonly grammar: Grammar,
             public readonly context_name: string,
             public content: Rule
         ) {
             super(content);
         }
-        static fromRuleJSON(reserved: RuleJSON.Reserved, IDs: Counter, grammar: QueryGrammar): Reserved {
+        static fromRuleJSON(reserved: RuleJSON.Reserved, IDs: Counter, grammar: Grammar): Reserved {
             return new Reserved(IDs.next(), grammar, reserved.context_name, Rule.fromRuleJSON(reserved.content, IDs, grammar));
         }
     }
@@ -677,13 +662,13 @@ export namespace Rule {
         readonly terminality = Terminality.NonTerminal;
         constructor(
             public readonly id: number, //
-            public readonly grammar: QueryGrammar,
+            public readonly grammar: Grammar,
             public readonly type: 'TOKEN' | 'IMMEDIATE_TOKEN',
             public content: Rule
         ) {
             super(content);
         }
-        static fromRuleJSON(token: RuleJSON.Token, IDs: Counter, grammar: QueryGrammar): Token {
+        static fromRuleJSON(token: RuleJSON.Token, IDs: Counter, grammar: Grammar): Token {
             return new Token(IDs.next(), grammar, token.type, Rule.fromRuleJSON(token.content, IDs, grammar));
         }
     }
@@ -693,30 +678,30 @@ export namespace Rule {
 
         constructor(
             public readonly id: number, //
-            public readonly grammar: QueryGrammar,
+            public readonly grammar: Grammar,
             public readonly name: string,
             public content: Rule
         ) {
             super(content);
         }
-        static fromRuleJSON(field: RuleJSON.Field, IDs: Counter, grammar: QueryGrammar): Field {
+        static fromRuleJSON(field: RuleJSON.Field, IDs: Counter, grammar: Grammar): Field {
             return new Field(IDs.next(), grammar, field.name, Rule.fromRuleJSON(field.content, IDs, grammar));
         }
 
-        matchesName(node: Definition): boolean {
-            return node instanceof Definition.FieldDefinition && node.name === this.name;
+        matchesName(node: DefinitionChild): boolean {
+            return node instanceof FieldDefinition && node.name === this.name;
         }
 
-        matchesContent(node?: Definition): boolean {
-            let value = node instanceof Definition.FieldDefinition ? node.value : node;
+        matchesContent(node?: DefinitionChild): boolean {
+            let value = node instanceof FieldDefinition ? node.value : node;
             if (!value) {
                 return false;
             }
-            return !!value && this.content.thisOrTerminalDescendants().some(rule => rule.matchesMetaNode(value));
+            return !!value && this.content.thisOrTerminalDescendants().some(rule => rule.matchesDefinition(value));
         }
 
-        matchesMetaNode(node: Definition): boolean {
-            if (node instanceof Definition.FieldDefinition) {
+        matchesDefinition(node: DefinitionChild): boolean {
+            if (node instanceof FieldDefinition) {
                 return this.matchesName(node) && !!node.value && this.matchesContent(node.value);
             }
             return this.matchesContent(node);
@@ -726,13 +711,13 @@ export namespace Rule {
         readonly terminality = Terminality.NonTerminal;
         constructor(
             public readonly id: number, //
-            public readonly grammar: QueryGrammar,
+            public readonly grammar: Grammar,
             public readonly type: 'PREC' | 'PREC_LEFT' | 'PREC_RIGHT' | 'PREC_DYNAMIC',
             public content: Rule
         ) {
             super(content);
         }
-        static fromRuleJSON(precedence: RuleJSON.Precedence, IDs: Counter, grammar: QueryGrammar): Precedence {
+        static fromRuleJSON(precedence: RuleJSON.Precedence, IDs: Counter, grammar: Grammar): Precedence {
             return new Precedence(IDs.next(), grammar, precedence.type, Rule.fromRuleJSON(precedence.content, IDs, grammar));
         }
     }

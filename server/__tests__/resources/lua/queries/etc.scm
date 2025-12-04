@@ -1,3 +1,8 @@
+
+(label_statement "::" "::")
+
+(chunk (comment) (comment))
+
 field: (identifier) @field
 
   (attribute
@@ -80,3 +85,11 @@ name: [
 method: (identifier)
 
 (chunk (statement) (statement) (return_statement))
+
+(chunk (comment))
+
+(do_statement "do" body: (_))
+
+(do_statement "do" !body)
+
+(do_statement !body "do")
